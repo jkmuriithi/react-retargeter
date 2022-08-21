@@ -4,9 +4,13 @@
  */
 function drawToCanvas(
     image: ImageData,
-    canvas: HTMLCanvasElement,
-    container?: HTMLElement
+    canvas: HTMLCanvasElement | null,
+    container?: HTMLElement | null
 ) {
+    if (canvas === null || container === null) {
+        throw new Error("Received null element.");
+    }
+
     const { width, height } = image;
 
     if (container !== undefined) {

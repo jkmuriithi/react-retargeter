@@ -1,6 +1,6 @@
 import useResizeObserver from "@react-hook/resize-observer";
 import { useEffect, useRef, useState } from "react";
-import { Container, Form, ToggleButton } from "react-bootstrap";
+import { Button, Container, Form, ToggleButton } from "react-bootstrap";
 import exampleImage from "./assets/ExampleImageOcean.png";
 import TopNav from "./components/TopNav";
 import { toImageData } from "./lib/conversion/ImageData";
@@ -17,9 +17,6 @@ function App() {
     );
     const [showEnergy, setShowEnergy] = useState(false);
     useResizeObserver(canvasRef, (entry) => {
-        if (canvasRef.current === null || resizeWindowRef.current === null)
-            throw new Error("Resize window contains null ref.");
-
         const { width, height } = entry.contentRect;
         const { width: currWidth, height: currHeight } =
             seamRetargeter.imageData;
@@ -51,9 +48,6 @@ function App() {
     }, [setSeamRetargeter]);
 
     useEffect(() => {
-        if (canvasRef.current === null || resizeWindowRef.current === null)
-            throw new Error("Resize window contains null ref.");
-
         drawToCanvas(
             showEnergy ? seamRetargeter.energyImage : seamRetargeter.imageData,
             canvasRef.current,
@@ -78,17 +72,10 @@ function App() {
                 >
                     <canvas className="w-100 h-100" ref={canvasRef}></canvas>
                 </Container>
-                <Container className="p-0 d-flex justify-content-center">
-                    <ToggleButton
-                        variant={showEnergy ? "dark" : "outline-dark"}
-                        value="Show Energies"
-                        onClick={() => setShowEnergy(!showEnergy)}
-                        checked={showEnergy}
-                    >
-                        Show Energies
-                    </ToggleButton>
+                <Container className="p-0 d-flex flex-wrap justify-content-center">
                     <Form.Control
-                        className="w-50 mx-2"
+                        className="m-2 flex-grow-1"
+                        style={{ maxWidth: "300px" }}
                         type="file"
                         accept="image/jpeg,image/png"
                         onChange={(e) => {
@@ -102,6 +89,43 @@ function App() {
                             );
                         }}
                     />
+                    <ToggleButton
+                        className="m-2"
+                        variant={showEnergy ? "dark" : "outline-dark"}
+                        value="Show Energies"
+                        onClick={() => setShowEnergy(!showEnergy)}
+                        checked={showEnergy}
+                    >
+                        Show Energies
+                    </ToggleButton>
+                    <Button
+                        className="m-2"
+                        variant="info"
+                        onClick={() => {
+                            seamRetargeter.drawHorizontalSeam();
+                            drawToCanvas(
+                                seamRetargeter.imageData,
+                                canvasRef.current,
+                                resizeWindowRef.current
+                            );
+                        }}
+                    >
+                        Draw Horizontal Seam
+                    </Button>
+                    <Button
+                        className="m-2"
+                        variant="info"
+                        onClick={() => {
+                            seamRetargeter.drawVerticalSeam();
+                            drawToCanvas(
+                                seamRetargeter.imageData,
+                                canvasRef.current,
+                                resizeWindowRef.current
+                            );
+                        }}
+                    >
+                        Draw Vertical Seam
+                    </Button>
                 </Container>
             </Container>
         </>
