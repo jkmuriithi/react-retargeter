@@ -17,6 +17,9 @@ function App() {
     );
     const [showEnergy, setShowEnergy] = useState(false);
     useResizeObserver(canvasRef, (entry) => {
+        if (canvasRef.current === null || resizeWindowRef.current === null)
+            throw new Error("Resize window contains null ref.");
+
         const { width, height } = entry.contentRect;
         const { width: currWidth, height: currHeight } =
             seamRetargeter.imageData;
@@ -32,6 +35,12 @@ function App() {
             seamRetargeter.shrinkVertical(currHeight - height);
         else if (currHeight < height)
             seamRetargeter.growVertical(height - currWidth);
+
+        drawToCanvas(
+            showEnergy ? seamRetargeter.energyImage : seamRetargeter.imageData,
+            canvasRef.current,
+            resizeWindowRef.current
+        );
     });
 
     // Get ImageData from example image

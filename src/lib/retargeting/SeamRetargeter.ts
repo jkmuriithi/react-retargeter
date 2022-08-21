@@ -16,8 +16,6 @@ class SeamRetargeter extends Retargeter {
      */
     private energies: number[][];
 
-    /**  */
-
     /**
      * Creates a new SeamCarver object. A deep copy of the given ImageData is
      * created to prevent outside mutations.
@@ -30,9 +28,10 @@ class SeamRetargeter extends Retargeter {
         this.imageData = new ImageData(data.slice(), width, height);
 
         // Calculate initial pixel energies
-        this.energies = [];
+        this.energies = Array.from({ length: height }, () =>
+            new Array(width).fill(0)
+        );
         for (let i = 0; i < height; i++) {
-            this.energies[i] = [];
             for (let j = 0; j < width; j++) {
                 this.energies[i][j] = this.calculateEnergy(i, j);
             }
@@ -41,10 +40,16 @@ class SeamRetargeter extends Retargeter {
 
     public shrinkHorizontal(n: number = 1): void {
         console.log(`shrinkHorizontal: ${n}`);
+        this.findVerticalSeam().map((val, idx) => {
+            this.setPixelValues(idx, val, [255, 0, 0, 255]);
+        });
     }
 
     public shrinkVertical(n: number = 1): void {
         console.log(`shrinkVertical: ${n}`);
+        this.findHorizontalSeam().map((val, idx) => {
+            this.setPixelValues(val, idx, [255, 0, 0, 255]);
+        });
     }
 
     public growHorizontal(n: number = 1): void {
@@ -62,6 +67,16 @@ class SeamRetargeter extends Retargeter {
     private getPixelValues(row: number, col: number): Uint8ClampedArray {
         const idx = row * this.imageData.width * 4 + col * 4;
         return this.imageData.data.subarray(idx, idx + 4);
+    }
+
+    /**  */
+    private setPixelValues(
+        row: number,
+        col: number,
+        values: [number, number, number, number]
+    ): void {
+        const idx = row * this.imageData.width * 4 + col * 4;
+        return this.imageData.data.set(values, idx);
     }
 
     /** Validates pixel coordinate range. */
@@ -145,10 +160,77 @@ class SeamRetargeter extends Retargeter {
 
     /**
      * Returns an array seam[] of length equal to the current width, for which
-     * seam[i] is the row of the pixel to be removed from column i.
+     * seam[i] is the row of the pixel to be removed from column i, going from
+     * left to right
      */
     private findHorizontalSeam(): number[] {
-        return [];
+        const { width, height } = this.imageData;
+
+        /**
+         * distTo[row][col] = energy of the minimum path from pixel (row, col)
+         * to the left edge of the image.
+         */
+        const distTo: number[][] = Array.from({ length: height }, () =>
+            new Array(width).fill(Number.POSITIVE_INFINITY)
+        );
+
+        /**
+         * edgeTo[row][col] = row of the pixel immediately before pixel
+         * (row, col) in the minimum energy path to the left edge of the image.
+         */
+        const edgeTo: number[][] = Array.from({ length: height }, () =>
+            new Array(width).fill(0)
+        );
+
+        // Let the distance values of the leftmost column of pixels be their
+        // energy values
+        for (let i = 0; i < height; i++) distTo[i][0] = this.energies[i][0];
+
+        for (let col = 1; col < width; col++) {
+            for (let row = 0; row < height; row++) {
+                // Upper pixel in the prior column
+                const upper =
+                    row > 0
+                        ? distTo[row - 1][col - 1]
+                        : Number.POSITIVE_INFINITY;
+
+                // Middle pixel in the prior column
+                const middle = distTo[row][col - 1];
+
+                // Lower pixel in the prior column
+                const lower =
+                    row < height - 1
+                        ? distTo[row + 1][col - 1]
+                        : Number.POSITIVE_INFINITY;
+
+                const min = Math.min(upper, middle, lower);
+
+                if (min === upper) edgeTo[row][col] = row - 1;
+                else if (min === middle) edgeTo[row][col] = row;
+                else if (min === lower) edgeTo[row][col] = row + 1;
+
+                distTo[row][col] = min + this.energies[row][col];
+            }
+        }
+
+        // Find minimum dist in the rightmost column
+        let minDist = Number.POSITIVE_INFINITY;
+        let min = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < height; i++) {
+            const curr = distTo[i][width - 1];
+            if (curr < minDist) {
+                min = i;
+                minDist = curr;
+            }
+        }
+
+        // Backtrack to build seam
+        const seam: number[] = Array(width).fill(0);
+        seam[width - 1] = min;
+        for (let i = width - 2; i >= 0; i--)
+            seam[i] = edgeTo[seam[i + 1]][i + 1];
+
+        return seam;
     }
 
     /**
@@ -156,7 +238,73 @@ class SeamRetargeter extends Retargeter {
      * seam[i] is the column of the pixel to be removed from row i.
      */
     private findVerticalSeam(): number[] {
-        return [];
+        const { width, height } = this.imageData;
+
+        /**
+         * distTo[row][col] = energy of the minimum path from pixel (row, col)
+         * to the top edge of the image.
+         */
+        const distTo: number[][] = Array.from({ length: height }, () =>
+            new Array(width).fill(Number.POSITIVE_INFINITY)
+        );
+
+        /**
+         * edgeTo[row][col] = col of the pixel immediately before pixel
+         * (row, col) in the minimum energy path to the top edge of the image.
+         */
+        const edgeTo: number[][] = Array.from({ length: height }, () =>
+            new Array(width).fill(0)
+        );
+
+        // Let the distance values of the topmost row of pixels be their
+        // energy values
+        for (let j = 0; j < width; j++) distTo[0][j] = this.energies[0][j];
+
+        for (let row = 1; row < height; row++) {
+            for (let col = 0; col < width; col++) {
+                // Left pixel in the prior  row
+                const left =
+                    col > 0
+                        ? distTo[row - 1][col - 1]
+                        : Number.POSITIVE_INFINITY;
+
+                // Middle pixel in the prior row
+                const middle = distTo[row - 1][col];
+
+                // Right pixel in the prior row
+                const right =
+                    col < width - 1
+                        ? distTo[row - 1][col + 1]
+                        : Number.POSITIVE_INFINITY;
+
+                const min = Math.min(left, middle, right);
+
+                if (min === left) edgeTo[row][col] = col - 1;
+                else if (min === middle) edgeTo[row][col] = col;
+                else if (min === right) edgeTo[row][col] = col + 1;
+
+                distTo[row][col] = min + this.energies[row][col];
+            }
+        }
+
+        // Find minimum dist in the botton row
+        let minDist = Number.POSITIVE_INFINITY;
+        let min = Number.POSITIVE_INFINITY;
+        for (let j = 0; j < width; j++) {
+            const curr = distTo[height - 1][j];
+            if (curr < minDist) {
+                min = j;
+                minDist = curr;
+            }
+        }
+
+        // Backtrack to build seam
+        const seam = Array(height).fill(0);
+        seam[height - 1] = min;
+        for (let i = height - 2; i >= 0; i--)
+            seam[i] = edgeTo[i + 1][seam[i + 1]];
+
+        return seam;
     }
 
     private removeHorizontalSeam(seam: number[]): void {}
