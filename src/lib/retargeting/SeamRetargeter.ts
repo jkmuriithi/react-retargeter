@@ -8,7 +8,7 @@ import Retargeter from "./Retargeter";
  */
 class SeamRetargeter extends Retargeter {
     /** The current state of the retargeted image. */
-    public readonly imageData: ImageData;
+    public imageData: ImageData;
 
     /**
      * energies[row][col] gives the value of the dual-gradient energy function
@@ -39,17 +39,15 @@ class SeamRetargeter extends Retargeter {
     }
 
     public shrinkHorizontal(n: number = 1): void {
-        console.log(`shrinkHorizontal: ${n}`);
-        this.findVerticalSeam().map((val, idx) => {
-            this.setPixelValues(idx, val, [255, 0, 0, 255]);
-        });
+        // this.drawVerticalSeam();
+        for (let _ = 0; _ < n; _++)
+            this.removeVerticalSeam(Array(this.imageData.height).fill(200));
     }
 
     public shrinkVertical(n: number = 1): void {
-        console.log(`shrinkVertical: ${n}`);
-        this.findHorizontalSeam().map((val, idx) => {
-            this.setPixelValues(val, idx, [255, 0, 0, 255]);
-        });
+        // this.drawHorizontalSeam();
+        for (let _ = 0; _ < n; _++)
+            this.removeHorizontalSeam(Array(this.imageData.width).fill(200));
     }
 
     public growHorizontal(n: number = 1): void {
@@ -60,23 +58,73 @@ class SeamRetargeter extends Retargeter {
         console.log(`growVertical: ${n}`);
     }
 
+    /** ImageData representation of the calculated pixel energies. */
+    get energyImage(): ImageData {
+        const { width, height } = this.imageData;
+
+        const energyImage = new ImageData(
+            new Uint8ClampedArray(new ArrayBuffer(width * height * 4)),
+            width,
+            height
+        );
+
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                const ener = this.energies[i][j];
+                energyImage.data.set(
+                    [ener, ener, ener, 255],
+                    i * width * 4 + j * 4
+                );
+            }
+        }
+
+        return energyImage;
+    }
+
+    /**
+     * Draws the return value of findHorizontalSeam() on the current image in
+     * red.
+     */
+    public drawHorizontalSeam(): void {
+        this.findHorizontalSeam().forEach((val, idx) => {
+            this.setPixelValues(val, idx, [255, 0, 0, 255]);
+        });
+    }
+
+    /**
+     * Draws the return value of findVerticalSeam() on the current image in
+     * red.
+     */
+    public drawVerticalSeam(): void {
+        this.findVerticalSeam().forEach((val, idx) => {
+            this.setPixelValues(idx, val, [255, 0, 0, 255]);
+        });
+    }
+
     /**
      * Returns the color values for the pixel at (row, col) in RGBA order.
      * NOTE: Pixel coordinates are zero-indexed.
      */
-    private getPixelValues(row: number, col: number): Uint8ClampedArray {
-        const idx = row * this.imageData.width * 4 + col * 4;
-        return this.imageData.data.subarray(idx, idx + 4);
+    private getPixelValues(
+        row: number,
+        col: number,
+        imgData: ImageData = this.imageData
+    ): Uint8ClampedArray {
+        const idx = row * imgData.width * 4 + col * 4;
+        return imgData.data.subarray(idx, idx + 4);
     }
 
-    /**  */
+    /**
+     * Sets the color values for the pixel at (row, col).
+     * NOTE: Pixel coordinates are zero-indexed.
+     */
     private setPixelValues(
         row: number,
         col: number,
-        values: [number, number, number, number]
+        values: ArrayLike<number>,
+        imgData: ImageData = this.imageData
     ): void {
-        const idx = row * this.imageData.width * 4 + col * 4;
-        return this.imageData.data.set(values, idx);
+        return imgData.data.set(values, row * imgData.width * 4 + col * 4);
     }
 
     /** Validates pixel coordinate range. */
@@ -133,29 +181,6 @@ class SeamRetargeter extends Retargeter {
             (left[2] - right[2]) * (left[2] - right[2]);
 
         return Math.sqrt(yGrad + xGrad);
-    }
-
-    /** ImageData representation of the calculated pixel energies. */
-    get energyImage(): ImageData {
-        const { width, height } = this.imageData;
-
-        const energyImage = new ImageData(
-            new Uint8ClampedArray(new ArrayBuffer(width * height * 4)),
-            width,
-            height
-        );
-
-        for (let i = 0; i < height; i++) {
-            for (let j = 0; j < width; j++) {
-                const ener = this.energies[i][j];
-                energyImage.data.set(
-                    [ener, ener, ener, 255],
-                    i * width * 4 + j * 4
-                );
-            }
-        }
-
-        return energyImage;
     }
 
     /**
@@ -307,9 +332,91 @@ class SeamRetargeter extends Retargeter {
         return seam;
     }
 
-    private removeHorizontalSeam(seam: number[]): void {}
+    /**
+     * Removes a horizontal seam from the current image, resizes the image, and
+     * recalculates the appropriate energies.
+     */
+    private removeHorizontalSeam(seam: number[]): void {
+        const { width, height } = this.imageData;
 
-    private removeVerticalSeam(seam: number[]): void {}
+        if (seam.length != width) throw new RangeError("Invalid seam length.");
+
+        // Populate new ImageData
+        const newData = new ImageData(
+            new Uint8ClampedArray(new ArrayBuffer(width * (height - 1) * 4)),
+            width,
+            height - 1
+        );
+
+        for (let row = 0; row < height - 1; row++) {
+            for (let col = 0; col < width; col++) {
+                if (row >= seam[col]) {
+                    this.setPixelValues(
+                        row,
+                        col,
+                        this.getPixelValues(row + 1, col),
+                        newData
+                    );
+                } else {
+                    this.setPixelValues(
+                        row,
+                        col,
+                        this.getPixelValues(row, col),
+                        newData
+                    );
+                }
+            }
+        }
+
+        this.imageData = newData;
+
+        // Remove invalid energies
+
+        // Recalculate energies along seam
+    }
+
+    /**
+     * Removes a vertical seam from the current image, resizes the image, and
+     * recalculates the appropriate energies.
+     */
+    private removeVerticalSeam(seam: number[]): void {
+        const { width, height } = this.imageData;
+
+        if (seam.length != height) throw new RangeError("Invalid seam length.");
+
+        // Populate new ImageData
+        const newData = new ImageData(
+            new Uint8ClampedArray(new ArrayBuffer((width - 1) * height * 4)),
+            width - 1,
+            height
+        );
+
+        for (let col = 0; col < width - 1; col++) {
+            for (let row = 0; row < height; row++) {
+                if (col >= seam[row]) {
+                    this.setPixelValues(
+                        row,
+                        col,
+                        this.getPixelValues(row, col + 1),
+                        newData
+                    );
+                } else {
+                    this.setPixelValues(
+                        row,
+                        col,
+                        this.getPixelValues(row, col),
+                        newData
+                    );
+                }
+            }
+        }
+
+        this.imageData = newData;
+
+        // Remove invalid energies
+
+        // Recalculate energies along seam
+    }
 
     private insertHorizontalSeam(seam: number[]): void {}
 
