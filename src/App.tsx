@@ -69,26 +69,70 @@ function App() {
                         resize: "both",
                     }}
                     ref={resizeWindowRef}
+                    onDragEnter={(e) => e.preventDefault()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        console.log(e);
+                        const files = e.dataTransfer.files;
+
+                        if (files === null)
+                            throw new Error("Could not retrieve files.");
+
+                        toImageData(files[0]).then((imgData) =>
+                            setSeamRetargeter(new SeamRetargeter(imgData))
+                        );
+                    }}
                 >
                     <canvas className="w-100 h-100" ref={canvasRef}></canvas>
                 </Container>
                 <Container className="p-0 d-flex flex-wrap justify-content-center">
-                    <Form.Control
-                        className="m-2 flex-grow-1"
-                        style={{ maxWidth: "300px" }}
-                        type="file"
-                        accept="image/jpeg,image/png"
-                        onChange={(e) => {
-                            const files = (e.target as HTMLInputElement).files;
+                    <Form.Group controlId="fileInput">
+                        <Form.Label
+                            className="btn btn-outline-primary m-2"
+                            onDragEnter={(e) => e.preventDefault()}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                console.log(e);
+                                const files = e.dataTransfer.files;
 
-                            if (files === null)
-                                throw new Error("Could not retrieve files.");
+                                if (files === null)
+                                    throw new Error(
+                                        "Could not retrieve files."
+                                    );
 
-                            toImageData(files[0]).then((imgData) =>
-                                setSeamRetargeter(new SeamRetargeter(imgData))
-                            );
-                        }}
-                    />
+                                toImageData(files[0]).then((imgData) =>
+                                    setSeamRetargeter(
+                                        new SeamRetargeter(imgData)
+                                    )
+                                );
+                            }}
+                        >
+                            Select or Drop Image
+                        </Form.Label>
+                        <Form.Control
+                            id="fileInput"
+                            className="visually-hidden"
+                            type="file"
+                            accept="image/jpeg,image/png"
+                            onChange={(e) => {
+                                const files = (e.target as HTMLInputElement)
+                                    .files;
+
+                                if (files === null)
+                                    throw new Error(
+                                        "Could not retrieve files."
+                                    );
+
+                                toImageData(files[0]).then((imgData) =>
+                                    setSeamRetargeter(
+                                        new SeamRetargeter(imgData)
+                                    )
+                                );
+                            }}
+                        />
+                    </Form.Group>
                     <ToggleButton
                         className="m-2"
                         variant={showEnergy ? "dark" : "outline-dark"}
