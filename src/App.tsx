@@ -1,46 +1,56 @@
+import useResizeObserver from "@react-hook/resize-observer";
 import { useEffect, useRef, useState } from "react";
 import { Container, Form, ToggleButton } from "react-bootstrap";
 import exampleImage from "./assets/ExampleImageOcean.png";
 import TopNav from "./components/TopNav";
 import { toImageData } from "./lib/conversion/ImageData";
 import { drawToCanvas } from "./lib/rendering/ImageData";
-import SeamCarver from "./lib/retargeting/SeamCarver";
-
-/** Dimensions of an image or canvas element in pixels. */
-interface Size {
-    /** Width of the element in pixels. */
-    width: number;
-    /** Height of the element in pixels. */
-    height: number;
-}
+import SeamRetargeter from "./lib/retargeting/SeamRetargeter";
 
 /** The application's main page. */
 function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const resizeWindowRef = useRef<HTMLDivElement>(null);
 
-    const [seamCarver, setSeamCarver] = useState<SeamCarver>(
-        new SeamCarver(new ImageData(1, 1))
+    const [seamRetargeter, setSeamRetargeter] = useState<SeamRetargeter>(
+        new SeamRetargeter(new ImageData(1, 1))
     );
     const [showEnergy, setShowEnergy] = useState(false);
+    useResizeObserver(canvasRef, (entry) => {
+        const { width, height } = entry.contentRect;
+        const { width: currWidth, height: currHeight } =
+            seamRetargeter.imageData;
+
+        if (currWidth === 1 && currHeight === 1) return;
+
+        if (currWidth > width)
+            seamRetargeter.shrinkHorizontal(currWidth - width);
+        else if (currWidth < width)
+            seamRetargeter.growHorizontal(width - currWidth);
+
+        if (currHeight > height)
+            seamRetargeter.shrinkVertical(currHeight - height);
+        else if (currHeight < height)
+            seamRetargeter.growVertical(height - currWidth);
+    });
 
     // Get ImageData from example image
     useEffect(() => {
-        toImageData(exampleImage).then((imgData) =>
-            setSeamCarver(new SeamCarver(imgData))
-        );
-    }, []);
+        toImageData(exampleImage).then((imgData) => {
+            setSeamRetargeter(new SeamRetargeter(imgData));
+        });
+    }, [setSeamRetargeter]);
 
     useEffect(() => {
         if (canvasRef.current === null || resizeWindowRef.current === null)
             throw new Error("Resize window contains null ref.");
 
         drawToCanvas(
-            showEnergy ? seamCarver.energyImage : seamCarver.imageData,
+            showEnergy ? seamRetargeter.energyImage : seamRetargeter.imageData,
             canvasRef.current,
             resizeWindowRef.current
         );
-    }, [seamCarver, showEnergy]);
+    }, [seamRetargeter, showEnergy]);
 
     return (
         <>
@@ -51,7 +61,7 @@ function App() {
                 style={{ paddingTop: "80px" }}
             >
                 <Container
-                    className="p-0 mb-3 mw-100 overflow-hidden"
+                    className="p-0 mb-3 mw-100 overflow-hidden shadow-lg"
                     style={{ resize: "both" }}
                     ref={resizeWindowRef}
                 >
@@ -60,7 +70,7 @@ function App() {
                 <Container className="p-0 d-flex justify-content-center">
                     <ToggleButton
                         variant={showEnergy ? "dark" : "outline-dark"}
-                        value="Show Energy Image"
+                        value="Show Energies"
                         onClick={() => setShowEnergy(!showEnergy)}
                         checked={showEnergy}
                     >
@@ -77,7 +87,7 @@ function App() {
                                 throw new Error("Could not retrieve files.");
 
                             toImageData(files[0]).then((imgData) =>
-                                setSeamCarver(new SeamCarver(imgData))
+                                setSeamRetargeter(new SeamRetargeter(imgData))
                             );
                         }}
                     />
