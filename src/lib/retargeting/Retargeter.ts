@@ -4,7 +4,7 @@
  */
 abstract class Retargeter {
     /** Returns the current state of the retargeted image. */
-    public abstract getImageData(): ImageData;
+    public abstract imageData: ImageData;
 
     /**
      * Reduces the horizontal dimension of an image by n pixels, or, if no

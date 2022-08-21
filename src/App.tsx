@@ -29,16 +29,14 @@ function App() {
         toImageData(exampleImage).then((imgData) =>
             setSeamCarver(new SeamCarver(imgData))
         );
-    }, [setSeamCarver]);
+    }, []);
 
     useEffect(() => {
         if (canvasRef.current === null || resizeWindowRef.current === null)
             throw new Error("Resize window contains null ref.");
 
         drawToCanvas(
-            showEnergy
-                ? seamCarver.getEnergyImage()
-                : seamCarver.getImageData(),
+            showEnergy ? seamCarver.energyImage : seamCarver.imageData,
             canvasRef.current,
             resizeWindowRef.current
         );

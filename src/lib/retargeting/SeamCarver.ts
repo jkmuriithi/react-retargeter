@@ -6,58 +6,59 @@ import Retargeter from "./Retargeter";
  */
 class SeamCarver extends Retargeter {
     /** The current state of the retargeted image. */
-    private imageData: ImageData;
+    public readonly imageData: ImageData;
 
     /**
      * energy[row][col] gives the value of the dual-gradient energy function for
      * the pixel at (row, col).
      */
-    private energy: number[][];
+    private energies: Uint8ClampedArray;
 
-    /** ImageData representation of the calculated energies. */
-    private energyImage: ImageData;
-
+    /**
+     * Creates a new SeamCarver object. A deep copy of the given ImageData is
+     * created to prevent outside mutations.
+     */
     constructor(imageData: ImageData) {
         super();
 
-        // Create a deep copy of the given ImageData object
-        this.imageData = new ImageData(
-            imageData.data.slice(),
-            imageData.width,
-            imageData.height
-        );
+        const { width, height, data } = imageData;
+
+        this.imageData = new ImageData(data.slice(), width, height);
 
         // Calculate initial pixel energies
-        this.energy = Array(imageData.height).fill(
-            Array(imageData.width).fill(0)
-        );
-        this.energyImage = new ImageData(
-            new Uint8ClampedArray(
-                new ArrayBuffer(imageData.width * imageData.height * 4)
-            ),
-            imageData.width,
-            imageData.height
-        );
-        for (let i = 0; i < imageData.height; i++) {
-            for (let j = 0; j < imageData.width; j++) {
-                const ener = this.calculateEnergy(i, j);
-                this.energy[i][j] = ener;
-                this.energyImage.data.set(
-                    [ener, ener, ener, 255],
-                    i * imageData.width * 4 + j * 4
-                );
+        this.energies = new Uint8ClampedArray(new ArrayBuffer(width * height));
+
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                this.energies[i * width + j] = this.calculateEnergy(i, j);
             }
         }
     }
 
-    public getImageData(): ImageData {
-        return this.imageData;
+    /** An ImageData representation of the calculated pixel energies. */
+    get energyImage(): ImageData {
+        const { width, height } = this.imageData;
+
+        const energyImage = new ImageData(
+            new Uint8ClampedArray(new ArrayBuffer(width * height * 4)),
+            width,
+            height
+        );
+
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                const ener = this.getEnergyValue(i, j);
+                energyImage.data.set(
+                    [ener, ener, ener, 255],
+                    i * width * 4 + j * 4
+                );
+            }
+        }
+
+        return energyImage;
     }
 
-    getEnergyImage(): ImageData {
-        return this.energyImage;
-    }
-
+    /** Validates pixel coordinate range. */
     private pixelCoordsAreValid(row: number, col: number): boolean {
         return (
             row >= 0 &&
@@ -74,6 +75,13 @@ class SeamCarver extends Retargeter {
     private getPixelValues(row: number, col: number): Uint8ClampedArray {
         const idx = row * this.imageData.width * 4 + col * 4;
         return this.imageData.data.subarray(idx, idx + 4);
+    }
+
+    /** Returns the dual-gradient energy value for the pixel at (row, col). */
+    private getEnergyValue(row: number, col: number): number {
+        if (!this.pixelCoordsAreValid(row, col))
+            throw new RangeError(`Invalid pixel coordinates: (${row}, ${col})`);
+        return this.energies[row * this.imageData.width + col];
     }
 
     /**

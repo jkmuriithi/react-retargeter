@@ -48,6 +48,9 @@ async function toImageData(
 
         canvas.width = width;
         canvas.height = height;
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
         context.drawImage(image, 0, 0, width, height);
 
         image.remove();
@@ -58,9 +61,9 @@ async function toImageData(
         canvas.width = width;
         canvas.height = height;
 
-        context.drawImage(bitmap, 0, 0, width, height);
         context.imageSmoothingEnabled = true;
         context.imageSmoothingQuality = "high";
+        context.drawImage(bitmap, 0, 0, width, height);
     }
 
     const data = context.getImageData(0, 0, canvas.width, canvas.height);
