@@ -71,7 +71,9 @@ function App() {
             >
                 <Container
                     className="p-0 mb-3 mw-100 overflow-hidden shadow-lg"
-                    style={{ resize: "both" }}
+                    style={{
+                        resize: "both",
+                    }}
                     ref={resizeWindowRef}
                 >
                     <canvas className="w-100 h-100" ref={canvasRef}></canvas>

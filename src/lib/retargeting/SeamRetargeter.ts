@@ -33,21 +33,21 @@ class SeamRetargeter extends Retargeter {
         );
         for (let i = 0; i < height; i++) {
             for (let j = 0; j < width; j++) {
-                this.energies[i][j] = this.calculateEnergy(i, j);
+                this.calculateEnergy(i, j);
             }
         }
     }
 
     public shrinkHorizontal(n: number = 1): void {
-        // this.drawVerticalSeam();
-        for (let _ = 0; _ < n; _++)
-            this.removeVerticalSeam(Array(this.imageData.height).fill(200));
+        for (let _ = 0; _ < n; _++) {
+            this.removeVerticalSeam(this.findVerticalSeam());
+        }
     }
 
     public shrinkVertical(n: number = 1): void {
-        // this.drawHorizontalSeam();
-        for (let _ = 0; _ < n; _++)
-            this.removeHorizontalSeam(Array(this.imageData.width).fill(200));
+        for (let _ = 0; _ < n; _++) {
+            this.removeHorizontalSeam(this.findHorizontalSeam());
+        }
     }
 
     public growHorizontal(n: number = 1): void {
@@ -138,9 +138,10 @@ class SeamRetargeter extends Retargeter {
     }
 
     /**
-     * Calculates the dual gradient energy function for the pixel at (row, col).
+     * Sets energies[row][col] to the current value of the dual gradient energy
+     * function for the pixel at (row, col)
      */
-    private calculateEnergy(row: number, col: number): number {
+    private calculateEnergy(row: number, col: number): void {
         if (!this.pixelCoordsAreValid(row, col))
             throw new RangeError(`Invalid pixel coordinates: (${row}, ${col})`);
 
@@ -180,8 +181,10 @@ class SeamRetargeter extends Retargeter {
             (left[1] - right[1]) * (left[1] - right[1]) +
             (left[2] - right[2]) * (left[2] - right[2]);
 
-        return Math.sqrt(yGrad + xGrad);
+        this.energies[row][col] = Math.sqrt(yGrad + xGrad);
     }
+
+    private recalculateEnergy(row: number, col: number) {}
 
     /**
      * Returns an array seam[] of length equal to the current width, for which
@@ -357,6 +360,8 @@ class SeamRetargeter extends Retargeter {
                         this.getPixelValues(row + 1, col),
                         newData
                     );
+
+                    this.energies[row][col] = this.energies[row + 1][col];
                 } else {
                     this.setPixelValues(
                         row,
@@ -371,8 +376,28 @@ class SeamRetargeter extends Retargeter {
         this.imageData = newData;
 
         // Remove invalid energies
+        this.energies.pop();
 
-        // Recalculate energies along seam
+        // Recalculate energies
+
+        // To the left of the leftmost entry
+        if (seam[0] > 0) this.recalculateEnergy(seam[0] - 1, width - 1);
+        if (seam[0] < height - 1) this.recalculateEnergy(seam[0], width - 1);
+        if (seam[0] < height - 2)
+            this.recalculateEnergy(seam[0] + 1, width - 1);
+
+        // To the right of the rightmost entry
+        if (seam[width - 1] > 0) this.recalculateEnergy(seam[width - 1] - 1, 0);
+        if (seam[width - 1] < height - 1)
+            this.recalculateEnergy(seam[width - 1], 0);
+        if (seam[width - 1] < height - 2)
+            this.recalculateEnergy(seam[width - 1] + 1, 0);
+
+        // Along the seam
+        for (let col = 0; col < width; col++) {
+            if (seam[col] > 0) this.calculateEnergy(seam[col] - 1, col);
+            if (seam[col] < height - 1) this.calculateEnergy(seam[col], col);
+        }
     }
 
     /**
@@ -414,8 +439,28 @@ class SeamRetargeter extends Retargeter {
         this.imageData = newData;
 
         // Remove invalid energies
+        for (let row = 0; row < height; row++)
+            this.energies[row].splice(seam[row], 1);
 
-        // Recalculate energies along seam
+        // Recalculate energies
+
+        // Above the top entry
+        if (seam[0] > 0) this.calculateEnergy(height - 1, seam[0] - 1);
+        if (seam[0] < width - 1) this.calculateEnergy(height - 1, seam[0]);
+        if (seam[0] < width - 2) this.calculateEnergy(height - 1, seam[0] + 1);
+
+        // Below the bottom entry
+        if (seam[height - 1] > 0) this.calculateEnergy(0, seam[height - 1] - 1);
+        if (seam[height - 1] < width - 1)
+            this.calculateEnergy(0, seam[height - 1]);
+        if (seam[height - 1] < width - 2)
+            this.calculateEnergy(0, seam[height - 1] + 1);
+
+        // Along the seam
+        for (let row = 0; row < height; row++) {
+            if (seam[row] > 0) this.calculateEnergy(row, seam[row] - 1);
+            if (seam[row] < width - 1) this.calculateEnergy(row, seam[row]);
+        }
     }
 
     private insertHorizontalSeam(seam: number[]): void {}

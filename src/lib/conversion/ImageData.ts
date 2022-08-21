@@ -6,7 +6,7 @@ function getScaledDimensions(dimObject: { width: number; height: number }): {
     width: number;
     height: number;
 } {
-    const WINDOW_SCALING_FACTOR = 0.85;
+    const WINDOW_SCALING_FACTOR = 0.7;
     const { width: orgWidth, height: orgHeight } = dimObject;
 
     if (orgWidth > orgHeight) {
