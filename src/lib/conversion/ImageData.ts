@@ -6,22 +6,28 @@ function getScaledDimensions(dimObject: { width: number; height: number }): {
     width: number;
     height: number;
 } {
-    const WINDOW_SCALING_FACTOR = 0.7;
     const { width: orgWidth, height: orgHeight } = dimObject;
 
-    if (orgWidth > orgHeight) {
-        const width = Math.min(
-            orgWidth,
-            window.innerWidth * WINDOW_SCALING_FACTOR
-        );
-        return { width, height: width * (orgHeight / orgWidth) };
+    const MOBILE_SCALING_FACTOR = 0.8;
+    const DESKTOP_SCALING_FACTOR = 0.75;
+
+    if (window.innerWidth <= window.innerHeight) {
+        const fitWidth = Math.floor(window.innerWidth * MOBILE_SCALING_FACTOR);
+        return {
+            width: fitWidth,
+            height: fitWidth * (orgHeight / orgWidth),
+        };
     } else {
-        const height = Math.min(
-            orgHeight,
-            window.innerHeight * WINDOW_SCALING_FACTOR
+        const fitHeight = Math.floor(
+            window.innerHeight * DESKTOP_SCALING_FACTOR
         );
-        return { width: height * (orgWidth / orgHeight), height };
+        return {
+            width: fitHeight * (orgWidth / orgHeight),
+            height: fitHeight,
+        };
     }
+
+    return { width: orgWidth, height: orgHeight };
 }
 
 /**

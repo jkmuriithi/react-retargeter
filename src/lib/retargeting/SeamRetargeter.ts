@@ -40,13 +40,19 @@ class SeamRetargeter extends Retargeter {
 
     public shrinkHorizontal(n: number = 1): void {
         for (let _ = 0; _ < n; _++) {
+            const { width, height } = this.imageData;
+            console.time(`Horizontal - width: ${width}, height: ${height}`);
             this.removeVerticalSeam(this.findVerticalSeam());
+            console.timeEnd(`Horizontal - width: ${width}, height: ${height}`);
         }
     }
 
     public shrinkVertical(n: number = 1): void {
         for (let _ = 0; _ < n; _++) {
+            const { width, height } = this.imageData;
+            console.time(`Vertical - width: ${width}, height: ${height}`);
             this.removeHorizontalSeam(this.findHorizontalSeam());
+            console.timeEnd(`Vertical - width: ${width}, height: ${height}`);
         }
     }
 
@@ -56,6 +62,7 @@ class SeamRetargeter extends Retargeter {
 
     public growVertical(n: number = 1): void {
         console.log(`growVertical: ${n}`);
+        this.insertHorizontalSeam(Array(this.imageData.width).fill(100));
     }
 
     /** ImageData representation of the calculated pixel energies. */
@@ -353,7 +360,14 @@ class SeamRetargeter extends Retargeter {
 
         for (let row = 0; row < height - 1; row++) {
             for (let col = 0; col < width; col++) {
-                if (row >= seam[col]) {
+                if (row < seam[col]) {
+                    this.setPixelValues(
+                        row,
+                        col,
+                        this.getPixelValues(row, col),
+                        newData
+                    );
+                } else {
                     this.setPixelValues(
                         row,
                         col,
@@ -362,13 +376,6 @@ class SeamRetargeter extends Retargeter {
                     );
 
                     this.energies[row][col] = this.energies[row + 1][col];
-                } else {
-                    this.setPixelValues(
-                        row,
-                        col,
-                        this.getPixelValues(row, col),
-                        newData
-                    );
                 }
             }
         }
@@ -418,18 +425,18 @@ class SeamRetargeter extends Retargeter {
 
         for (let col = 0; col < width - 1; col++) {
             for (let row = 0; row < height; row++) {
-                if (col >= seam[row]) {
+                if (col < seam[row]) {
                     this.setPixelValues(
                         row,
                         col,
-                        this.getPixelValues(row, col + 1),
+                        this.getPixelValues(row, col),
                         newData
                     );
                 } else {
                     this.setPixelValues(
                         row,
                         col,
-                        this.getPixelValues(row, col),
+                        this.getPixelValues(row, col + 1),
                         newData
                     );
                 }
@@ -463,7 +470,72 @@ class SeamRetargeter extends Retargeter {
         }
     }
 
-    private insertHorizontalSeam(seam: number[]): void {}
+    private insertHorizontalSeam(seam: number[]): void {
+        const { width, height } = this.imageData;
+
+        if (seam.length != width) throw new RangeError("Invalid seam length.");
+
+        // Populate new ImageData
+        const newData = new ImageData(
+            new Uint8ClampedArray(new ArrayBuffer(width * (height + 1) * 4)),
+            width,
+            height + 1
+        );
+
+        for (let row = 0; row < height + 1; row++) {
+            for (let col = 0; col < width; col++) {
+                if (row < seam[col]) {
+                    this.setPixelValues(
+                        row,
+                        col,
+                        this.getPixelValues(row, col),
+                        newData
+                    );
+                } else if (row > seam[col]) {
+                    this.setPixelValues(
+                        row,
+                        col,
+                        this.getPixelValues(row - 1, col),
+                        newData
+                    );
+                } else {
+                    const top =
+                        seam[col] > 0
+                            ? this.getPixelValues(seam[col] - 1, col)
+                            : this.getPixelValues(height - 1, col);
+                    const bottom =
+                        seam[col] < height - 1
+                            ? this.getPixelValues(seam[col] + 1, col)
+                            : this.getPixelValues(0, col);
+                    this.setPixelValues(
+                        row,
+                        col,
+                        [
+                            (top[0] + bottom[0]) * 0.5,
+                            (top[1] + bottom[1]) * 0.5,
+                            (top[2] + bottom[2]) * 0.5,
+                            (top[3] + bottom[3]) * 0.5,
+                        ],
+                        newData
+                    );
+                }
+            }
+        }
+
+        this.imageData = newData;
+
+        // Make room for new energies
+        this.energies.push(new Array(width).fill(0));
+
+        // Move existing energies down from seam
+        for (let row = height; row >= 0; row--) {
+            for (let col = width - 1; col >= 0; col--) {
+                if (row > seam[col])
+                    this.energies[row][col] = this.energies[row - 1][col];
+                else break;
+            }
+        }
+    }
 
     private insertVerticalSeam(seam: number[]): void {}
 }

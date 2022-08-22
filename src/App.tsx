@@ -1,21 +1,31 @@
 import useResizeObserver from "@react-hook/resize-observer";
 import { useEffect, useRef, useState } from "react";
 import { Button, Container, Form, ToggleButton } from "react-bootstrap";
-import exampleImage from "./assets/ExampleImageOcean.png";
+import exampleImage from "./assets/ExampleImageMountains.jpg";
 import TopNav from "./components/TopNav";
 import { toImageData } from "./lib/conversion/ImageData";
 import { drawToCanvas } from "./lib/rendering/ImageData";
+import Retargeter from "./lib/retargeting/Retargeter";
 import SeamRetargeter from "./lib/retargeting/SeamRetargeter";
 
-/** The application's main page. */
+/**
+ * The application's main page.
+ * Default photo by James Dant on Unsplash
+ * @see {@link https://unsplash.com/@jamesdant?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText}
+ */
 function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const resizeWindowRef = useRef<HTMLDivElement>(null);
 
-    const [seamRetargeter, setSeamRetargeter] = useState<SeamRetargeter>(
+    const [seamRetargeter, setSeamRetargeter] = useState<Retargeter>(
         new SeamRetargeter(new ImageData(1, 1))
     );
+    const [imageStatus, setImageStatus] = useState({
+        width: 1,
+        height: 1,
+    });
     const [showEnergy, setShowEnergy] = useState(false);
+
     useResizeObserver(canvasRef, (entry) => {
         const { width, height } = entry.contentRect;
         const { width: currWidth, height: currHeight } =
@@ -31,13 +41,17 @@ function App() {
         if (currHeight > height)
             seamRetargeter.shrinkVertical(currHeight - height);
         else if (currHeight < height)
-            seamRetargeter.growVertical(height - currWidth);
+            seamRetargeter.growVertical(height - currHeight);
 
         drawToCanvas(
-            showEnergy ? seamRetargeter.energyImage : seamRetargeter.imageData,
+            showEnergy
+                ? (seamRetargeter as SeamRetargeter).energyImage
+                : seamRetargeter.imageData,
             canvasRef.current,
             resizeWindowRef.current
         );
+
+        setImageStatus({ width, height });
     });
 
     // Get ImageData from example image
@@ -47,24 +61,35 @@ function App() {
         });
     }, [setSeamRetargeter]);
 
+    // Draw energy to screen on button press
     useEffect(() => {
         drawToCanvas(
-            showEnergy ? seamRetargeter.energyImage : seamRetargeter.imageData,
+            showEnergy
+                ? (seamRetargeter as SeamRetargeter).energyImage
+                : seamRetargeter.imageData,
             canvasRef.current,
             resizeWindowRef.current
         );
     }, [seamRetargeter, showEnergy]);
 
+    // Display correct dimensions after image switch
+    useEffect(() => {
+        const { width, height } = seamRetargeter.imageData;
+        setImageStatus({ width, height });
+    }, [seamRetargeter]);
+
     return (
         <>
             <TopNav />
             <Container
-                className={`px-0 mw-100 mb-3 d-flex flex-column align-items-center
-                    justify-content-center`}
+                fluid
+                className={`px-0 min-vh-100 d-flex flex-column align-items-center
+                    justify-content-center bg-light`}
                 style={{ paddingTop: "80px" }}
             >
                 <Container
-                    className="p-0 mb-3 mw-100 overflow-hidden shadow-lg"
+                    fluid
+                    className="p-0 mb-3 overflow-hidden shadow"
                     style={{
                         resize: "both",
                     }}
@@ -86,10 +111,16 @@ function App() {
                 >
                     <canvas className="w-100 h-100" ref={canvasRef}></canvas>
                 </Container>
-                <Container className="p-0 d-flex flex-wrap justify-content-center">
+                <Container
+                    fluid
+                    className="p-0 d-flex flex-wrap justify-content-center"
+                >
+                    <Button className="m-2 pe-none" variant="outline-success">
+                        {`${imageStatus.width}x${imageStatus.height}`}
+                    </Button>
                     <Form.Group controlId="fileInput">
                         <Form.Label
-                            className="btn btn-outline-primary m-2"
+                            className="btn btn-outline-dark m-2"
                             onDragEnter={(e) => e.preventDefault()}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => {
@@ -112,7 +143,6 @@ function App() {
                             Select or Drop Image
                         </Form.Label>
                         <Form.Control
-                            id="fileInput"
                             className="visually-hidden"
                             type="file"
                             accept="image/jpeg,image/png"
@@ -135,7 +165,7 @@ function App() {
                     </Form.Group>
                     <ToggleButton
                         className="m-2"
-                        variant={showEnergy ? "dark" : "outline-dark"}
+                        variant={showEnergy ? "primary" : "outline-primary"}
                         value="Show Energies"
                         onClick={() => setShowEnergy(!showEnergy)}
                         checked={showEnergy}
@@ -146,7 +176,9 @@ function App() {
                         className="m-2"
                         variant="info"
                         onClick={() => {
-                            seamRetargeter.drawHorizontalSeam();
+                            (
+                                seamRetargeter as SeamRetargeter
+                            ).drawHorizontalSeam();
                             drawToCanvas(
                                 seamRetargeter.imageData,
                                 canvasRef.current,
@@ -160,7 +192,9 @@ function App() {
                         className="m-2"
                         variant="info"
                         onClick={() => {
-                            seamRetargeter.drawVerticalSeam();
+                            (
+                                seamRetargeter as SeamRetargeter
+                            ).drawVerticalSeam();
                             drawToCanvas(
                                 seamRetargeter.imageData,
                                 canvasRef.current,

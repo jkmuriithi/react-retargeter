@@ -1,4 +1,4 @@
-import "bootswatch/dist/zephyr/bootstrap.min.css";
+import "bootswatch/dist/flatly/bootstrap.min.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
