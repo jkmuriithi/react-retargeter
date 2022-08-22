@@ -40,19 +40,19 @@ class SeamRetargeter extends Retargeter {
 
     public shrinkHorizontal(n: number = 1): void {
         for (let _ = 0; _ < n; _++) {
-            const { width, height } = this.imageData;
-            console.time(`Horizontal - width: ${width}, height: ${height}`);
+            // const { width, height } = this.imageData;
+            // console.time(`Horizontal - width: ${width}, height: ${height}`);
             this.removeVerticalSeam(this.findVerticalSeam());
-            console.timeEnd(`Horizontal - width: ${width}, height: ${height}`);
+            // console.timeEnd(`Horizontal - width: ${width}, height: ${height}`);
         }
     }
 
     public shrinkVertical(n: number = 1): void {
         for (let _ = 0; _ < n; _++) {
-            const { width, height } = this.imageData;
-            console.time(`Vertical - width: ${width}, height: ${height}`);
+            // const { width, height } = this.imageData;
+            // console.time(`Vertical - width: ${width}, height: ${height}`);
             this.removeHorizontalSeam(this.findHorizontalSeam());
-            console.timeEnd(`Vertical - width: ${width}, height: ${height}`);
+            // console.timeEnd(`Vertical - width: ${width}, height: ${height}`);
         }
     }
 

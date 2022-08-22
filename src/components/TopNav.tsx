@@ -7,7 +7,7 @@ function TopNav() {
         <Navbar fixed="top" bg="primary" variant="dark" expand="md">
             <Container fluid className="mx-2">
                 <Navbar.Brand className="fw-bold">
-                    Interactive Image Retargeter
+                    Interactive Image Carver
                 </Navbar.Brand>
                 <Navbar.Toggle
                     aria-controls="top-nav"

@@ -1,6 +1,12 @@
 import useResizeObserver from "@react-hook/resize-observer";
 import { useEffect, useRef, useState } from "react";
-import { Button, Container, Form, ToggleButton } from "react-bootstrap";
+import {
+    Button,
+    ButtonGroup,
+    Container,
+    Form,
+    ToggleButton,
+} from "react-bootstrap";
 import exampleImage from "./assets/ExampleImageMountains.jpg";
 import TopNav from "./components/TopNav";
 import { toImageData } from "./lib/conversion/ImageData";
@@ -33,11 +39,13 @@ function App() {
 
         if (currWidth === 1 && currHeight === 1) return;
 
-        if (currWidth > width)
+        if (currWidth > width) {
             seamRetargeter.shrinkHorizontal(currWidth - width);
-
-        if (currHeight > height)
+        } else if (currHeight > height) {
             seamRetargeter.shrinkVertical(currHeight - height);
+        } else {
+            return;
+        }
 
         drawToCanvas(
             showEnergy
@@ -113,7 +121,7 @@ function App() {
                 >
                     <Form.Group controlId="fileInput">
                         <Form.Label
-                            className="btn btn-dark m-2"
+                            className="btn btn-success m-2"
                             onDragEnter={(e) => e.preventDefault()}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => {
@@ -156,9 +164,32 @@ function App() {
                             }}
                         />
                     </Form.Group>
-                    <Button className="m-2 pe-none" variant="outline-dark">
-                        {`${imageStatus.width}x${imageStatus.height}`}
-                    </Button>
+                    <ButtonGroup>
+                        {" "}
+                        <Button
+                            className="my-2 ms-2 pe-none"
+                            variant="outline-dark"
+                        >
+                            {`${imageStatus.width} \u00D7 ${imageStatus.height}`}
+                        </Button>
+                        <Button
+                            className="my-2 me-2 ms-none"
+                            variant="dark"
+                            onClick={() =>
+                                drawToCanvas(
+                                    showEnergy
+                                        ? (seamRetargeter as SeamRetargeter)
+                                              .energyImage
+                                        : seamRetargeter.imageData,
+                                    canvasRef.current,
+                                    resizeWindowRef.current
+                                )
+                            }
+                        >
+                            Show True Size
+                        </Button>
+                    </ButtonGroup>
+
                     <ToggleButton
                         className="m-2"
                         variant={showEnergy ? "primary" : "outline-primary"}
