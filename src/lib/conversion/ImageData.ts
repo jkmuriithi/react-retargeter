@@ -9,7 +9,7 @@ function getScaledDimensions(dimObject: { width: number; height: number }): {
     const { width: orgWidth, height: orgHeight } = dimObject;
 
     const MOBILE_SCALING_FACTOR = 0.8;
-    const DESKTOP_SCALING_FACTOR = 0.75;
+    const DESKTOP_SCALING_FACTOR = 0.7;
 
     if (window.innerWidth <= window.innerHeight) {
         const fitWidth = Math.floor(window.innerWidth * MOBILE_SCALING_FACTOR);

@@ -35,13 +35,9 @@ function App() {
 
         if (currWidth > width)
             seamRetargeter.shrinkHorizontal(currWidth - width);
-        else if (currWidth < width)
-            seamRetargeter.growHorizontal(width - currWidth);
 
         if (currHeight > height)
             seamRetargeter.shrinkVertical(currHeight - height);
-        else if (currHeight < height)
-            seamRetargeter.growVertical(height - currHeight);
 
         drawToCanvas(
             showEnergy
@@ -115,12 +111,9 @@ function App() {
                     fluid
                     className="p-0 d-flex flex-wrap justify-content-center"
                 >
-                    <Button className="m-2 pe-none" variant="outline-success">
-                        {`${imageStatus.width}x${imageStatus.height}`}
-                    </Button>
                     <Form.Group controlId="fileInput">
                         <Form.Label
-                            className="btn btn-outline-dark m-2"
+                            className="btn btn-dark m-2"
                             onDragEnter={(e) => e.preventDefault()}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => {
@@ -163,6 +156,9 @@ function App() {
                             }}
                         />
                     </Form.Group>
+                    <Button className="m-2 pe-none" variant="outline-dark">
+                        {`${imageStatus.width}x${imageStatus.height}`}
+                    </Button>
                     <ToggleButton
                         className="m-2"
                         variant={showEnergy ? "primary" : "outline-primary"}
