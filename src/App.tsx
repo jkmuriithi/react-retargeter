@@ -9,10 +9,10 @@ import {
 } from "react-bootstrap";
 import exampleImage from "./assets/ExampleImageMountains.jpg";
 import TopNav from "./components/TopNav";
-import { toImageData, windowFitScaling } from "./lib/conversion/ImageData";
+import toImageData, { windowFitScaling } from "./lib/conversion/toImageData";
 import { drawToCanvas } from "./lib/rendering/ImageData";
-import Retargeter from "./lib/retargeting/Retargeter";
-import SeamRetargeter from "./lib/retargeting/SeamRetargeter";
+import Retargeter from "./lib/retargeters/Retargeter";
+import SeamRetargeter from "./lib/retargeters/SeamRetargeter";
 
 /**
  * The application's main page.

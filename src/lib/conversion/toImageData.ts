@@ -106,4 +106,5 @@ function windowFitScaling(
 }
 
 export type { ImageSize, ScalingFunction };
-export { toImageData, windowFitScaling };
+export { windowFitScaling };
+export default toImageData;
