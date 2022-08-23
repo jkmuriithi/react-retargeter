@@ -13,9 +13,11 @@ type ScalingFunction = (size: ImageSize) => ImageSize;
  * function to resize the incoming image data. Depends on DOM manipulation.
  */
 async function toImageData(
-    localFile: string | Blob | File,
+    localFile: string | Blob | File | ImageData,
     scalingFn?: ScalingFunction
 ): Promise<ImageData> {
+    if (localFile instanceof ImageData) return localFile;
+
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
 

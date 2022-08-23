@@ -29,6 +29,7 @@ function App() {
     const [seamRetargeter, setSeamRetargeter] = useState<Retargeter>(
         new SeamRetargeter(new ImageData(1, 1))
     );
+    const [original, setOriginal] = useState<ImageData>(new ImageData(1, 1));
     const [canvasSize, setCanvasSize] = useState({
         width: 1,
         height: 1,
@@ -37,14 +38,21 @@ function App() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     /** Sets the retargeter to display new data. */
-    const setImageData = useCallback((img: string | File | Blob) => {
-        toImageData(img, scalingFn.current).then((imgData) => {
-            setSeamRetargeter(new SeamRetargeter(imgData));
-            const { width, height } = imgData;
-            setCanvasSize({ width, height });
-            setIsExpanded(false);
-        });
-    }, []);
+    const setImageData = useCallback(
+        (img: string | File | Blob | ImageData) => {
+            toImageData(img, scalingFn.current).then((imgData) => {
+                // Reset ImageData
+                setSeamRetargeter(new SeamRetargeter(imgData));
+                if (original !== imgData) setOriginal(imgData);
+
+                // Reset dimensions info
+                const { width, height } = imgData;
+                setCanvasSize({ width, height });
+                setIsExpanded(false);
+            });
+        },
+        [original]
+    );
 
     /** Handles file input and drop events. */
     const handleIncomingImage = useCallback(
@@ -103,105 +111,106 @@ function App() {
     useEffect(drawImage, [drawImage, seamRetargeter, showEnergy]);
 
     return (
-        <>
+        <Container
+            fluid
+            className={`px-0 min-vh-100 d-flex flex-column
+                align-items-center justify-content-center bg-light`}
+            style={{ paddingTop: "80px" }}
+            onDragEnter={(e) => e.preventDefault()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleIncomingImage}
+        >
             <TopNav />
             <Container
                 fluid
-                className={`px-0 min-vh-100 d-flex flex-column
-                align-items-center justify-content-center bg-light`}
-                style={{ paddingTop: "80px" }}
-                onDragEnter={(e) => e.preventDefault()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleIncomingImage}
+                className="p-0 mb-3 overflow-hidden shadow"
+                style={{
+                    resize: "both",
+                }}
+                ref={resizeWindowRef}
             >
-                <Container
-                    fluid
-                    className="p-0 mb-3 overflow-hidden shadow"
-                    style={{
-                        resize: "both",
-                    }}
-                    ref={resizeWindowRef}
-                >
-                    <canvas className="w-100 h-100" ref={canvasRef}></canvas>
-                </Container>
-                <Container
-                    fluid
-                    className="p-0 d-flex flex-wrap justify-content-center"
-                >
-                    <ButtonGroup>
-                        <Button
-                            className="my-2 ms-2 pe-none"
-                            variant="outline-dark"
-                        >
-                            {`${canvasSize.width} \u00D7 ${canvasSize.height}`}
-                        </Button>
-                        <Button
-                            className="my-2 me-2 ms-none"
-                            variant="dark"
-                            disabled={!isExpanded}
-                            onClick={drawImage}
-                        >
-                            Show True Size
-                        </Button>
-                    </ButtonGroup>
-                    <Form.Group controlId="fileInput">
-                        <Form.Label className="btn btn-success m-2">
-                            Choose File
-                        </Form.Label>
-                        <Form.Control
-                            className="visually-hidden"
-                            type="file"
-                            accept="image/jpeg,image/png"
-                            onChange={handleIncomingImage}
-                        />
-                    </Form.Group>
-                    <Button
-                        as="a"
-                        className="m-2"
-                        variant="primary"
-                        download={`Image-Carver-${new Date().toISOString()}.png`}
-                        href={canvasRef.current?.toDataURL("image/png")}
-                    >
-                        Download Image
-                    </Button>
-                    <ToggleButton
-                        className="m-2"
-                        variant={showEnergy ? "primary" : "outline-primary"}
-                        value="Show Energies"
-                        onClick={() => setShowEnergy(!showEnergy)}
-                        checked={showEnergy}
-                    >
-                        Show Energies
-                    </ToggleButton>
-                    <Button
-                        className="m-2"
-                        variant="info"
-                        disabled={showEnergy}
-                        onClick={() => {
-                            (
-                                seamRetargeter as SeamRetargeter
-                            ).drawHorizontalSeam();
-                            drawImage();
-                        }}
-                    >
-                        Draw Horizontal Seam
-                    </Button>
-                    <Button
-                        className="m-2"
-                        variant="info"
-                        disabled={showEnergy}
-                        onClick={() => {
-                            (
-                                seamRetargeter as SeamRetargeter
-                            ).drawVerticalSeam();
-                            drawImage();
-                        }}
-                    >
-                        Draw Vertical Seam
-                    </Button>
-                </Container>
+                <canvas className="w-100 h-100" ref={canvasRef}></canvas>
             </Container>
-        </>
+            <Container
+                fluid
+                className="p-0 d-flex flex-wrap justify-content-center"
+            >
+                <ButtonGroup>
+                    <Button
+                        className="my-2 ms-2 pe-none"
+                        variant="outline-dark"
+                    >
+                        {`${canvasSize.width} \u00D7 ${canvasSize.height}`}
+                    </Button>
+                    <Button
+                        className="my-2 me-2 ms-none"
+                        variant="dark"
+                        disabled={!isExpanded}
+                        onClick={drawImage}
+                    >
+                        Show True Size
+                    </Button>
+                </ButtonGroup>
+                <Form.Group controlId="fileInput">
+                    <Form.Label className="btn btn-success m-2">
+                        Choose File
+                    </Form.Label>
+                    <Form.Control
+                        className="visually-hidden"
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        onChange={handleIncomingImage}
+                    />
+                </Form.Group>
+                <Button
+                    variant="danger"
+                    className="m-2"
+                    onClick={() => setImageData(original)}
+                >
+                    Reset to Original
+                </Button>
+                <Button
+                    as="a"
+                    className="m-2"
+                    variant="primary"
+                    download={`Image-Carver-${new Date().toISOString()}.png`}
+                    href={canvasRef.current?.toDataURL("image/png")}
+                >
+                    Download Image
+                </Button>
+                <ToggleButton
+                    className="m-2"
+                    variant={showEnergy ? "info" : "outline-info"}
+                    value="Show Energies"
+                    onClick={() => setShowEnergy(!showEnergy)}
+                    checked={showEnergy}
+                >
+                    Show Energies
+                </ToggleButton>
+                <Button
+                    className="m-2"
+                    variant="info"
+                    disabled={showEnergy}
+                    onClick={() => {
+                        (seamRetargeter as SeamRetargeter).drawHorizontalSeam();
+                        drawImage();
+                    }}
+                >
+                    Draw Horizontal Seam
+                </Button>
+                <Button
+                    className="m-2"
+                    variant="info"
+                    disabled={showEnergy}
+                    onClick={() => {
+                        (seamRetargeter as SeamRetargeter).drawVerticalSeam();
+                        drawImage();
+                    }}
+                >
+                    Draw Vertical Seam
+                </Button>
+            </Container>
+        </Container>
     );
 }
 
