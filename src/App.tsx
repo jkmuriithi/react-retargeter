@@ -81,8 +81,10 @@ function App() {
 
         if (imgWidth === 1 && imgHeight === 1) return;
 
-        // Prevent seam carving an expanded image
         setIsExpanded(canvasWidth > imgWidth || canvasHeight > imgHeight);
+        setCanvasSize({ width: canvasWidth, height: canvasHeight });
+
+        // Prevent seam carving an expanded image
         if (isExpanded) return;
 
         if (imgWidth > canvasWidth) {
@@ -92,8 +94,6 @@ function App() {
             seamRetargeter.shrinkVertical(imgHeight - canvasHeight);
             drawImage();
         }
-
-        setCanvasSize({ width: canvasWidth, height: canvasHeight });
     });
 
     // Get ImageData from example image on page load
@@ -110,6 +110,9 @@ function App() {
                 className={`px-0 min-vh-100 d-flex flex-column
                 align-items-center justify-content-center bg-light`}
                 style={{ paddingTop: "80px" }}
+                onDragEnter={(e) => e.preventDefault()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleIncomingImage}
             >
                 <Container
                     fluid
@@ -118,9 +121,6 @@ function App() {
                         resize: "both",
                     }}
                     ref={resizeWindowRef}
-                    onDragEnter={(e) => e.preventDefault()}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleIncomingImage}
                 >
                     <canvas className="w-100 h-100" ref={canvasRef}></canvas>
                 </Container>
@@ -128,22 +128,6 @@ function App() {
                     fluid
                     className="p-0 d-flex flex-wrap justify-content-center"
                 >
-                    <Form.Group controlId="fileInput">
-                        <Form.Label
-                            className="btn btn-success m-2"
-                            onDragEnter={(e) => e.preventDefault()}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={handleIncomingImage}
-                        >
-                            Select or Drop Image
-                        </Form.Label>
-                        <Form.Control
-                            className="visually-hidden"
-                            type="file"
-                            accept="image/jpeg,image/png"
-                            onChange={handleIncomingImage}
-                        />
-                    </Form.Group>
                     <ButtonGroup>
                         <Button
                             className="my-2 ms-2 pe-none"
@@ -160,6 +144,26 @@ function App() {
                             Show True Size
                         </Button>
                     </ButtonGroup>
+                    <Form.Group controlId="fileInput">
+                        <Form.Label className="btn btn-success m-2">
+                            Choose File
+                        </Form.Label>
+                        <Form.Control
+                            className="visually-hidden"
+                            type="file"
+                            accept="image/jpeg,image/png"
+                            onChange={handleIncomingImage}
+                        />
+                    </Form.Group>
+                    <Button
+                        as="a"
+                        className="m-2"
+                        variant="primary"
+                        download={`Image-Carver-${new Date().toISOString()}.png`}
+                        href={canvasRef.current?.toDataURL("image/png")}
+                    >
+                        Download Image
+                    </Button>
                     <ToggleButton
                         className="m-2"
                         variant={showEnergy ? "primary" : "outline-primary"}
