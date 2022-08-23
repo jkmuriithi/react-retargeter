@@ -29,7 +29,7 @@ function App() {
     const [seamRetargeter, setSeamRetargeter] = useState<Retargeter>(
         new SeamRetargeter(new ImageData(1, 1))
     );
-    const [imageSize, setImageSize] = useState({
+    const [canvasSize, setCanvasSize] = useState({
         width: 1,
         height: 1,
     });
@@ -41,7 +41,7 @@ function App() {
         toImageData(img, scalingFn.current).then((imgData) => {
             setSeamRetargeter(new SeamRetargeter(imgData));
             const { width, height } = imgData;
-            setImageSize({ width, height });
+            setCanvasSize({ width, height });
             setIsExpanded(false);
         });
     }, []);
@@ -81,6 +81,10 @@ function App() {
 
         if (imgWidth === 1 && imgHeight === 1) return;
 
+        // Prevent seam carving an expanded image
+        setIsExpanded(canvasWidth > imgWidth || canvasHeight > imgHeight);
+        if (isExpanded) return;
+
         if (imgWidth > canvasWidth) {
             seamRetargeter.shrinkHorizontal(imgWidth - canvasWidth);
             drawImage();
@@ -89,8 +93,7 @@ function App() {
             drawImage();
         }
 
-        setIsExpanded(canvasWidth > imgWidth || canvasHeight > imgHeight);
-        setImageSize({ width: canvasWidth, height: canvasHeight });
+        setCanvasSize({ width: canvasWidth, height: canvasHeight });
     });
 
     // Get ImageData from example image on page load
@@ -146,7 +149,7 @@ function App() {
                             className="my-2 ms-2 pe-none"
                             variant="outline-dark"
                         >
-                            {`${imageSize.width} \u00D7 ${imageSize.height}`}
+                            {`${canvasSize.width} \u00D7 ${canvasSize.height}`}
                         </Button>
                         <Button
                             className="my-2 me-2 ms-none"

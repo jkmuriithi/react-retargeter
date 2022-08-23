@@ -86,19 +86,19 @@ function windowFitScaling(
         const fitHeight = Math.floor(window.innerHeight * heightScale);
 
         if (orgWidth > fitWidth || orgHeight > fitHeight) {
-            if (fitWidth > fitHeight) {
-                console.log("Scaled height");
-                return {
-                    width: fitHeight * (orgWidth / orgHeight),
-                    height: fitHeight,
-                };
-            } else {
-                console.log("Scaled width");
-                return {
-                    width: fitWidth,
-                    height: fitWidth * (orgHeight / orgWidth),
-                };
-            }
+            const heightScaled = {
+                width: fitHeight * (orgWidth / orgHeight),
+                height: fitHeight,
+            };
+            const widthScaled = {
+                width: fitWidth,
+                height: fitWidth * (orgHeight / orgWidth),
+            };
+
+            return heightScaled.width * heightScaled.height <
+                widthScaled.width * widthScaled.height
+                ? heightScaled
+                : widthScaled;
         }
 
         return { width: orgWidth, height: orgHeight };

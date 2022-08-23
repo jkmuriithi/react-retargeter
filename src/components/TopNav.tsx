@@ -1,5 +1,5 @@
 import { Container, Navbar } from "react-bootstrap";
-import { BsGithub } from "react-icons/bs";
+import { BsGithub, BsQuestionCircleFill } from "react-icons/bs";
 
 /** Top navigation bar. */
 function TopNav() {
@@ -7,7 +7,11 @@ function TopNav() {
         <Navbar fixed="top" bg="primary" variant="dark" expand="md">
             <Container fluid className="mx-2">
                 <Navbar.Brand className="fw-bold">
-                    Interactive Image Carver
+                    Interactive Image Carver{" "}
+                    <BsQuestionCircleFill
+                        size={15}
+                        className="mb-1 ms-1 link-dark"
+                    />
                 </Navbar.Brand>
                 <Navbar.Toggle
                     aria-controls="top-nav"

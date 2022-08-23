@@ -404,7 +404,8 @@ class SeamRetargeter implements Retargeter {
     public removeVerticalSeam(seam: number[]): void {
         const { width, height } = this.imageData;
 
-        if (seam.length !== height) throw new RangeError("Invalid seam length.");
+        if (seam.length !== height)
+            throw new RangeError("Invalid seam length.");
 
         // Populate new ImageData
         const newData = new ImageData(
@@ -552,7 +553,8 @@ class SeamRetargeter implements Retargeter {
     public insertVerticalSeam(seam: number[]): void {
         const { width, height } = this.imageData;
 
-        if (seam.length !== height) throw new RangeError("Invalid seam length.");
+        if (seam.length !== height)
+            throw new RangeError("Invalid seam length.");
 
         // Populate new ImageData
         const newData = new ImageData(
