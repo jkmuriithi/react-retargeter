@@ -1,9 +1,12 @@
 /**
  * Implements an API which allows clients to retarget an image represented by
- * an ImageData object.
+ * an ImageData object in real-time.
  */
 abstract class Retargeter {
-    /** Returns the current state of the retargeted image. */
+    /**
+     * The current state of the retargeted image.
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
+     */
     public abstract imageData: ImageData;
 
     /**

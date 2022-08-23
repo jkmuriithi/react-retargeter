@@ -1,13 +1,19 @@
 import Retargeter from "./Retargeter";
 
 /**
- * Implements seam carving and seam insertion.
+ * Implements seam insertion and real-time seam carving. Since seam insertion
+ * requires the use of precalculated seams and cannot be completed in real time,
+ * this class does not support the `growHorizontal` and `growVertical`
+ * operations.
+ *
+ * @author Jude Muriithi <https://github.com/muriithipton>
+ *
+ * @citation
  * Inspired by a Princeton COS226 assignment developed by Josh Hug,
  * Maia Ginsburg, and Kevin Wayne.
- * @see {@link https://www.cs.princeton.edu/courses/archive/spring20/cos226/assignments/seam/specification.php}
+ * {@link https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/seam/specification.php}
  */
-class SeamRetargeter extends Retargeter {
-    /** The current state of the retargeted image. */
+class SeamRetargeter implements Retargeter {
     public imageData: ImageData;
 
     /**
@@ -21,8 +27,6 @@ class SeamRetargeter extends Retargeter {
      * created to prevent outside mutations.
      */
     constructor(imageData: ImageData) {
-        super();
-
         const { width, height, data } = imageData;
 
         this.imageData = new ImageData(data.slice(), width, height);
@@ -39,45 +43,23 @@ class SeamRetargeter extends Retargeter {
     }
 
     public shrinkHorizontal(n: number = 1): void {
-        for (let _ = 0; _ < n; _++) {
-            // const { width, height } = this.imageData;
-            // console.time(`Horizontal - width: ${width}, height: ${height}`);
+        for (let _ = 0; _ < n; _++)
             this.removeVerticalSeam(this.findVerticalSeam());
-            // console.timeEnd(`Horizontal - width: ${width}, height: ${height}`);
-        }
     }
 
     public shrinkVertical(n: number = 1): void {
-        for (let _ = 0; _ < n; _++) {
-            // const { width, height } = this.imageData;
-            // console.time(`Vertical - width: ${width}, height: ${height}`);
+        for (let _ = 0; _ < n; _++)
             this.removeHorizontalSeam(this.findHorizontalSeam());
-            // console.timeEnd(`Vertical - width: ${width}, height: ${height}`);
-        }
     }
 
-    // Real seam insertion requires precalculation, so we just insert random
-    // noise for now
+    /** Throws an error. Seam insertion cannot be completed in real time. */
     public growHorizontal(n: number = 1): void {
-        for (let _ = 0; _ < n; _++) {
-            const { width, height } = this.imageData;
-            this.insertVerticalSeam(
-                Array.from({ length: height }, () =>
-                    Math.floor(Math.random() * width)
-                )
-            );
-        }
+        throw new Error("Operation not supported.");
     }
 
+    /** Throws an error. Seam insertion cannot be completed in real-time. */
     public growVertical(n: number = 1): void {
-        for (let _ = 0; _ < n; _++) {
-            const { width, height } = this.imageData;
-            this.insertHorizontalSeam(
-                Array.from({ length: width }, () =>
-                    Math.floor(Math.random() * height)
-                )
-            );
-        }
+        throw new Error("Operation not supported.");
     }
 
     /** ImageData representation of the calculated pixel energies. */
@@ -125,7 +107,6 @@ class SeamRetargeter extends Retargeter {
 
     /**
      * Returns the color values for the pixel at (row, col) in RGBA order.
-     * NOTE: Pixel coordinates are zero-indexed.
      */
     private getPixelValues(
         row: number,
@@ -138,7 +119,6 @@ class SeamRetargeter extends Retargeter {
 
     /**
      * Sets the color values for the pixel at (row, col).
-     * NOTE: Pixel coordinates are zero-indexed.
      */
     private setPixelValues(
         row: number,
@@ -161,7 +141,7 @@ class SeamRetargeter extends Retargeter {
 
     /**
      * Sets energies[row][col] to the current value of the dual gradient energy
-     * function for the pixel at (row, col)
+     * function for the pixel at (row, col).
      */
     private calculateEnergy(row: number, col: number): void {
         if (!this.pixelCoordsAreValid(row, col))
@@ -206,14 +186,12 @@ class SeamRetargeter extends Retargeter {
         this.energies[row][col] = Math.sqrt(yGrad + xGrad);
     }
 
-    private recalculateEnergy(row: number, col: number) {}
-
     /**
      * Returns an array seam[] of length equal to the current width, for which
      * seam[i] is the row of the pixel to be removed from column i, going from
      * left to right
      */
-    private findHorizontalSeam(): number[] {
+    public findHorizontalSeam(): number[] {
         const { width, height } = this.imageData;
 
         /**
@@ -287,7 +265,7 @@ class SeamRetargeter extends Retargeter {
      * Returns an array seam[] of length equal to the current height, for which
      * seam[i] is the column of the pixel to be removed from row i.
      */
-    private findVerticalSeam(): number[] {
+    public findVerticalSeam(): number[] {
         const { width, height } = this.imageData;
 
         /**
@@ -361,10 +339,10 @@ class SeamRetargeter extends Retargeter {
      * Removes a horizontal seam from the current image, resizes the image, and
      * recalculates the appropriate energies.
      */
-    private removeHorizontalSeam(seam: number[]): void {
+    public removeHorizontalSeam(seam: number[]): void {
         const { width, height } = this.imageData;
 
-        if (seam.length != width) throw new RangeError("Invalid seam length.");
+        if (seam.length !== width) throw new RangeError("Invalid seam length.");
 
         // Populate new ImageData
         const newData = new ImageData(
@@ -423,10 +401,10 @@ class SeamRetargeter extends Retargeter {
      * Removes a vertical seam from the current image, resizes the image, and
      * recalculates the appropriate energies.
      */
-    private removeVerticalSeam(seam: number[]): void {
+    public removeVerticalSeam(seam: number[]): void {
         const { width, height } = this.imageData;
 
-        if (seam.length != height) throw new RangeError("Invalid seam length.");
+        if (seam.length !== height) throw new RangeError("Invalid seam length.");
 
         // Populate new ImageData
         const newData = new ImageData(
@@ -480,10 +458,14 @@ class SeamRetargeter extends Retargeter {
         }
     }
 
-    private insertHorizontalSeam(seam: number[]): void {
+    /**
+     * Inserts a horizontal seam into the current image, resizes the image, and
+     * recalculates the appropriate energies.
+     */
+    public insertHorizontalSeam(seam: number[]): void {
         const { width, height } = this.imageData;
 
-        if (seam.length != width) throw new RangeError("Invalid seam length.");
+        if (seam.length !== width) throw new RangeError("Invalid seam length.");
 
         // Populate new ImageData
         const newData = new ImageData(
@@ -563,10 +545,14 @@ class SeamRetargeter extends Retargeter {
         }
     }
 
-    private insertVerticalSeam(seam: number[]): void {
+    /**
+     * Inserts a vertical seam into the current image, resizes the image, and
+     * recalculates the appropriate energies.
+     */
+    public insertVerticalSeam(seam: number[]): void {
         const { width, height } = this.imageData;
 
-        if (seam.length != height) throw new RangeError("Invalid seam length.");
+        if (seam.length !== height) throw new RangeError("Invalid seam length.");
 
         // Populate new ImageData
         const newData = new ImageData(

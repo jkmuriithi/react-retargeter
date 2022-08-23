@@ -1,5 +1,5 @@
 import useResizeObserver from "@react-hook/resize-observer";
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
     Button,
     ButtonGroup,
@@ -9,7 +9,7 @@ import {
 } from "react-bootstrap";
 import exampleImage from "./assets/ExampleImageMountains.jpg";
 import TopNav from "./components/TopNav";
-import { toImageData } from "./lib/conversion/ImageData";
+import { toImageData, windowFitScaling } from "./lib/conversion/ImageData";
 import { drawToCanvas } from "./lib/rendering/ImageData";
 import Retargeter from "./lib/retargeting/Retargeter";
 import SeamRetargeter from "./lib/retargeting/SeamRetargeter";
@@ -17,56 +17,55 @@ import SeamRetargeter from "./lib/retargeting/SeamRetargeter";
 /**
  * The application's main page.
  * Default photo by James Dant on Unsplash
- * @see {@link https://unsplash.com/@jamesdant?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText}
+ * @see https://unsplash.com/@jamesdant?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText
  */
 function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const resizeWindowRef = useRef<HTMLDivElement>(null);
 
+    /** Scaling function for incoming images. */
+    const scalingFn = useRef(windowFitScaling(0.8, 0.7));
+
     const [seamRetargeter, setSeamRetargeter] = useState<Retargeter>(
         new SeamRetargeter(new ImageData(1, 1))
     );
-    const [imageStatus, setImageStatus] = useState({
+    const [imageSize, setImageSize] = useState({
         width: 1,
         height: 1,
     });
     const [showEnergy, setShowEnergy] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
-    useResizeObserver(canvasRef, (entry) => {
-        const { width, height } = entry.contentRect;
-        const { width: currWidth, height: currHeight } =
-            seamRetargeter.imageData;
-
-        if (currWidth === 1 && currHeight === 1) return;
-
-        if (currWidth > width) {
-            seamRetargeter.shrinkHorizontal(currWidth - width);
-        } else if (currHeight > height) {
-            seamRetargeter.shrinkVertical(currHeight - height);
-        } else {
-            return;
-        }
-
-        drawToCanvas(
-            showEnergy
-                ? (seamRetargeter as SeamRetargeter).energyImage
-                : seamRetargeter.imageData,
-            canvasRef.current,
-            resizeWindowRef.current
-        );
-
-        setImageStatus({ width, height });
-    });
-
-    // Get ImageData from example image
-    useEffect(() => {
-        toImageData(exampleImage).then((imgData) => {
+    /** Sets the retargeter to display new data. */
+    const setImageData = useCallback((img: string | File | Blob) => {
+        toImageData(img, scalingFn.current).then((imgData) => {
             setSeamRetargeter(new SeamRetargeter(imgData));
+            const { width, height } = imgData;
+            setImageSize({ width, height });
+            setIsExpanded(false);
         });
-    }, [setSeamRetargeter]);
+    }, []);
 
-    // Draw energy to screen on button press
-    useEffect(() => {
+    /** Handles file input and drop events. */
+    const handleIncomingImage = useCallback(
+        (e: ChangeEvent<HTMLInputElement> & React.DragEvent<HTMLElement>) => {
+            e.preventDefault();
+            const files =
+                e.dataTransfer === undefined
+                    ? e.target.files
+                    : e.dataTransfer.files;
+
+            if (files === null) {
+                throw new Error("Could not retrieve files.");
+            }
+
+            setImageData(files[0]);
+        },
+        [setImageData]
+    );
+
+    /** Draws the current image based on the state of showEnergy. */
+    const drawImage = useCallback(() => {
         drawToCanvas(
             showEnergy
                 ? (seamRetargeter as SeamRetargeter).energyImage
@@ -76,19 +75,37 @@ function App() {
         );
     }, [seamRetargeter, showEnergy]);
 
-    // Display correct dimensions after image switch
-    useEffect(() => {
-        const { width, height } = seamRetargeter.imageData;
-        setImageStatus({ width, height });
-    }, [seamRetargeter]);
+    useResizeObserver(canvasRef, (entry) => {
+        const { width: canvasWidth, height: canvasHeight } = entry.contentRect;
+        const { width: imgWidth, height: imgHeight } = seamRetargeter.imageData;
+
+        if (imgWidth === 1 && imgHeight === 1) return;
+
+        if (imgWidth > canvasWidth) {
+            seamRetargeter.shrinkHorizontal(imgWidth - canvasWidth);
+            drawImage();
+        } else if (imgHeight > canvasHeight) {
+            seamRetargeter.shrinkVertical(imgHeight - canvasHeight);
+            drawImage();
+        }
+
+        setIsExpanded(canvasWidth > imgWidth || canvasHeight > imgHeight);
+        setImageSize({ width: canvasWidth, height: canvasHeight });
+    });
+
+    // Get ImageData from example image on page load
+    useEffect(() => setImageData(exampleImage), [setImageData]);
+
+    // Draw image to screen after showEnergy changes
+    useEffect(drawImage, [drawImage, seamRetargeter, showEnergy]);
 
     return (
         <>
             <TopNav />
             <Container
                 fluid
-                className={`px-0 min-vh-100 d-flex flex-column align-items-center
-                    justify-content-center bg-light`}
+                className={`px-0 min-vh-100 d-flex flex-column
+                align-items-center justify-content-center bg-light`}
                 style={{ paddingTop: "80px" }}
             >
                 <Container
@@ -100,18 +117,7 @@ function App() {
                     ref={resizeWindowRef}
                     onDragEnter={(e) => e.preventDefault()}
                     onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                        e.preventDefault();
-                        console.log(e);
-                        const files = e.dataTransfer.files;
-
-                        if (files === null)
-                            throw new Error("Could not retrieve files.");
-
-                        toImageData(files[0]).then((imgData) =>
-                            setSeamRetargeter(new SeamRetargeter(imgData))
-                        );
-                    }}
+                    onDrop={handleIncomingImage}
                 >
                     <canvas className="w-100 h-100" ref={canvasRef}></canvas>
                 </Container>
@@ -124,22 +130,7 @@ function App() {
                             className="btn btn-success m-2"
                             onDragEnter={(e) => e.preventDefault()}
                             onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                                e.preventDefault();
-                                console.log(e);
-                                const files = e.dataTransfer.files;
-
-                                if (files === null)
-                                    throw new Error(
-                                        "Could not retrieve files."
-                                    );
-
-                                toImageData(files[0]).then((imgData) =>
-                                    setSeamRetargeter(
-                                        new SeamRetargeter(imgData)
-                                    )
-                                );
-                            }}
+                            onDrop={handleIncomingImage}
                         >
                             Select or Drop Image
                         </Form.Label>
@@ -147,49 +138,25 @@ function App() {
                             className="visually-hidden"
                             type="file"
                             accept="image/jpeg,image/png"
-                            onChange={(e) => {
-                                const files = (e.target as HTMLInputElement)
-                                    .files;
-
-                                if (files === null)
-                                    throw new Error(
-                                        "Could not retrieve files."
-                                    );
-
-                                toImageData(files[0]).then((imgData) =>
-                                    setSeamRetargeter(
-                                        new SeamRetargeter(imgData)
-                                    )
-                                );
-                            }}
+                            onChange={handleIncomingImage}
                         />
                     </Form.Group>
                     <ButtonGroup>
-                        {" "}
                         <Button
                             className="my-2 ms-2 pe-none"
                             variant="outline-dark"
                         >
-                            {`${imageStatus.width} \u00D7 ${imageStatus.height}`}
+                            {`${imageSize.width} \u00D7 ${imageSize.height}`}
                         </Button>
                         <Button
                             className="my-2 me-2 ms-none"
                             variant="dark"
-                            onClick={() =>
-                                drawToCanvas(
-                                    showEnergy
-                                        ? (seamRetargeter as SeamRetargeter)
-                                              .energyImage
-                                        : seamRetargeter.imageData,
-                                    canvasRef.current,
-                                    resizeWindowRef.current
-                                )
-                            }
+                            disabled={!isExpanded}
+                            onClick={drawImage}
                         >
                             Show True Size
                         </Button>
                     </ButtonGroup>
-
                     <ToggleButton
                         className="m-2"
                         variant={showEnergy ? "primary" : "outline-primary"}
@@ -202,15 +169,12 @@ function App() {
                     <Button
                         className="m-2"
                         variant="info"
+                        disabled={showEnergy}
                         onClick={() => {
                             (
                                 seamRetargeter as SeamRetargeter
                             ).drawHorizontalSeam();
-                            drawToCanvas(
-                                seamRetargeter.imageData,
-                                canvasRef.current,
-                                resizeWindowRef.current
-                            );
+                            drawImage();
                         }}
                     >
                         Draw Horizontal Seam
@@ -218,15 +182,12 @@ function App() {
                     <Button
                         className="m-2"
                         variant="info"
+                        disabled={showEnergy}
                         onClick={() => {
                             (
                                 seamRetargeter as SeamRetargeter
                             ).drawVerticalSeam();
-                            drawToCanvas(
-                                seamRetargeter.imageData,
-                                canvasRef.current,
-                                resizeWindowRef.current
-                            );
+                            drawImage();
                         }}
                     >
                         Draw Vertical Seam
