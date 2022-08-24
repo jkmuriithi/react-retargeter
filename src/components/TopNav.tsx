@@ -1,14 +1,21 @@
+import { useState } from "react";
 import { Container, Navbar } from "react-bootstrap";
 import { BsGithub, BsQuestionCircleFill } from "react-icons/bs";
+import InfoModal from "./InfoModal";
 
 /** Top navigation bar. */
 function TopNav() {
+    const [showInfoModal, setShowInfoModal] = useState(false);
+
     return (
         <Navbar fixed="top" bg="primary" variant="dark" expand="md">
             <Container fluid className="mx-2">
                 <Navbar.Brand className="fw-bold">
                     Interactive Image Retargeter{" "}
                     <BsQuestionCircleFill
+                        onClick={() => {
+                            setShowInfoModal(true);
+                        }}
                         size={15}
                         className="mb-1 ms-1 link-dark"
                     />
@@ -29,6 +36,13 @@ function TopNav() {
                     </span>
                 </Navbar.Collapse>
             </Container>
+            <InfoModal
+                show={showInfoModal}
+                centered
+                onHide={() => {
+                    setShowInfoModal(false);
+                }}
+            />
         </Navbar>
     );
 }

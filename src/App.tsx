@@ -204,7 +204,10 @@ function App() {
                     className="m-2"
                     variant={showEnergy ? "info" : "outline-info"}
                     value="Show Energies"
-                    onClick={() => setShowEnergy(!showEnergy)}
+                    onClick={(e) => {
+                        setShowEnergy(!showEnergy);
+                        (e.target as HTMLElement).blur();
+                    }}
                     checked={showEnergy}
                 >
                     Show Energies
