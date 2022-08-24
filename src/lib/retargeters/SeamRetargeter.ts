@@ -343,6 +343,7 @@ class SeamRetargeter implements Retargeter {
         const { width, height } = this.imageData;
 
         if (seam.length !== width) throw new RangeError("Invalid seam length.");
+        if (height === 1) throw new Error("Image has a height of 1 pixel.");
 
         // Populate new ImageData
         const newData = new ImageData(
@@ -406,6 +407,7 @@ class SeamRetargeter implements Retargeter {
 
         if (seam.length !== height)
             throw new RangeError("Invalid seam length.");
+        if (width === 1) throw new Error("Image has a width of 1 pixel.");
 
         // Populate new ImageData
         const newData = new ImageData(

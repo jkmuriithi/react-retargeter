@@ -9,7 +9,10 @@ import {
 } from "react-bootstrap";
 import exampleImage from "./assets/ExampleImageMountains.jpg";
 import TopNav from "./components/TopNav";
-import toImageData, { windowFitScaling } from "./lib/conversion/toImageData";
+import toImageData, {
+    ImageSize,
+    windowFitScaling,
+} from "./lib/conversion/toImageData";
 import { drawToCanvas } from "./lib/rendering/ImageData";
 import Retargeter from "./lib/retargeters/Retargeter";
 import SeamRetargeter from "./lib/retargeters/SeamRetargeter";
@@ -29,13 +32,30 @@ function App() {
     const [seamRetargeter, setSeamRetargeter] = useState<Retargeter>(
         new SeamRetargeter(new ImageData(1, 1))
     );
-    const [original, setOriginal] = useState<ImageData>(new ImageData(1, 1));
-    const [canvasSize, setCanvasSize] = useState({
+    const [canvasSize, setCanvasSize] = useState<ImageSize>({
         width: 1,
         height: 1,
     });
+    const [originalImg, setOriginalImg] = useState<ImageData>(
+        new ImageData(1, 1)
+    );
     const [showEnergy, setShowEnergy] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    /**
+     * Returns the current filename and data URL needed for the canvas download.
+     */
+    const getDownloadData = useCallback(
+        () => ({
+            name: `Image-Carver-${new Date()
+                .toISOString()
+                .replaceAll(/[:\-.]/g, "")}.png`,
+            url: canvasRef.current?.toDataURL(),
+        }),
+        []
+    );
+
+    const [canvasDownload, setCanvasDownload] = useState(getDownloadData);
 
     /** Sets the retargeter to display new data. */
     const setImageData = useCallback(
@@ -43,7 +63,7 @@ function App() {
             toImageData(img, scalingFn.current).then((imgData) => {
                 // Reset ImageData
                 setSeamRetargeter(new SeamRetargeter(imgData));
-                if (original !== imgData) setOriginal(imgData);
+                setOriginalImg(imgData);
 
                 // Reset dimensions info
                 const { width, height } = imgData;
@@ -51,7 +71,7 @@ function App() {
                 setIsExpanded(false);
             });
         },
-        [original]
+        []
     );
 
     /** Handles file input and drop events. */
@@ -81,7 +101,8 @@ function App() {
             canvasRef.current,
             resizeWindowRef.current
         );
-    }, [seamRetargeter, showEnergy]);
+        setCanvasDownload(getDownloadData());
+    }, [seamRetargeter, showEnergy, getDownloadData]);
 
     useResizeObserver(canvasRef, (entry) => {
         const { width: canvasWidth, height: canvasHeight } = entry.contentRect;
@@ -89,6 +110,7 @@ function App() {
 
         if (imgWidth === 1 && imgHeight === 1) return;
 
+        // Update image metadata
         setIsExpanded(canvasWidth > imgWidth || canvasHeight > imgHeight);
         setCanvasSize({ width: canvasWidth, height: canvasHeight });
 
@@ -107,7 +129,7 @@ function App() {
     // Get ImageData from example image on page load
     useEffect(() => setImageData(exampleImage), [setImageData]);
 
-    // Draw image to screen after showEnergy changes
+    // Draw image to screen after the image changes or showEnergy changes
     useEffect(drawImage, [drawImage, seamRetargeter, showEnergy]);
 
     return (
@@ -165,7 +187,7 @@ function App() {
                 <Button
                     variant="danger"
                     className="m-2"
-                    onClick={() => setImageData(original)}
+                    onClick={() => setImageData(originalImg)}
                 >
                     Reset to Original
                 </Button>
@@ -173,8 +195,8 @@ function App() {
                     as="a"
                     className="m-2"
                     variant="primary"
-                    download={`Image-Carver-${new Date().toISOString()}.png`}
-                    href={canvasRef.current?.toDataURL("image/png")}
+                    download={canvasDownload.name}
+                    href={canvasDownload.url}
                 >
                     Download Image
                 </Button>
