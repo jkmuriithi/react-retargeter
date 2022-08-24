@@ -7,7 +7,7 @@ function TopNav() {
         <Navbar fixed="top" bg="primary" variant="dark" expand="md">
             <Container fluid className="mx-2">
                 <Navbar.Brand className="fw-bold">
-                    Interactive Image Carver{" "}
+                    Interactive Image Retargeter{" "}
                     <BsQuestionCircleFill
                         size={15}
                         className="mb-1 ms-1 link-dark"
