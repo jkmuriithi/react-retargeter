@@ -1,6 +1,6 @@
 /**
- * Implements an API which allows clients to retarget an image represented by
- * an ImageData object in real-time.
+ * Allows clients to retarget an image represented by an ImageData object in
+ * real time.
  */
 abstract class Retargeter {
     /**
@@ -13,25 +13,25 @@ abstract class Retargeter {
      * Reduces the horizontal dimension of an image by n pixels, or, if no
      * argument is given, by one pixel.
      */
-    public abstract shrinkHorizontal(n?: number): void;
+    public abstract shrinkHorizontal(n?: number): void | Promise<void>;
 
     /**
      * Reduces the vertical dimension of an image by n pixels, or, if no
      * argument is given, by one pixel.
      */
-    public abstract shrinkVertical(n?: number): void;
+    public abstract shrinkVertical(n?: number): void | Promise<void>;
 
     /**
      * Increases the horizontal dimension of an image by n pixels, or, if no
      * argument is given, by one pixel.
      */
-    public abstract growHorizontal(n?: number): void;
+    public abstract growHorizontal(n?: number): void | Promise<void>;
 
     /**
      * Increases the vertical dimension of an image by n pixels, or, if no
      * argument is given, by one pixel.
      */
-    public abstract growVertical(n?: number): void;
+    public abstract growVertical(n?: number): void | Promise<void>;
 }
 
 export default Retargeter;

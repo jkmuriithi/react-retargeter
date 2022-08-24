@@ -19,7 +19,7 @@ import SeamRetargeter from "./lib/retargeters/SeamRetargeter";
 
 /**
  * The application's main page.
- * Default photo by James Dant on Unsplash
+ * Default photo by James Dant on Unsplash.
  * @see https://unsplash.com/@jamesdant?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText
  */
 function App() {
@@ -57,8 +57,8 @@ function App() {
 
     const [canvasDownload, setCanvasDownload] = useState(getDownloadData);
 
-    /** Sets the retargeter to display new data. */
-    const setImageData = useCallback(
+    /** Sets the image retargeter to display new data. */
+    const writeImageData = useCallback(
         (img: string | File | Blob | ImageData) => {
             toImageData(img, scalingFn.current).then((imgData) => {
                 // Reset ImageData
@@ -87,9 +87,9 @@ function App() {
                 throw new Error("Could not retrieve files.");
             }
 
-            setImageData(files[0]);
+            writeImageData(files[0]);
         },
-        [setImageData]
+        [writeImageData]
     );
 
     /** Draws the current image based on the state of showEnergy. */
@@ -127,7 +127,7 @@ function App() {
     });
 
     // Get ImageData from example image on page load
-    useEffect(() => setImageData(exampleImage), [setImageData]);
+    useEffect(() => writeImageData(exampleImage), [writeImageData]);
 
     // Draw image to screen after the image changes or showEnergy changes
     useEffect(drawImage, [drawImage, seamRetargeter, showEnergy]);
@@ -187,7 +187,7 @@ function App() {
                 <Button
                     variant="danger"
                     className="m-2"
-                    onClick={() => setImageData(originalImg)}
+                    onClick={() => writeImageData(originalImg)}
                 >
                     Reset to Original
                 </Button>

@@ -1,15 +1,15 @@
 import Retargeter from "./Retargeter";
 
 /**
- * Implements seam insertion and real-time seam carving. Since seam insertion
- * requires the use of precalculated seams and cannot be completed in real time,
- * this class does not support the `growHorizontal` and `growVertical`
- * operations.
+ * Retargets images through seam insertion and real time seam carving. Since
+ * seam insertion requires the use of precalculated seams and cannot be
+ * completed in real time, this class does not support the `growHorizontal` and
+ * `growVertical` operations.
  *
  * @author Jude Muriithi <https://github.com/muriithipton>
  *
  * @citation
- * Inspired by a Princeton COS226 assignment developed by Josh Hug,
+ * Adapted from a Princeton COS226 assignment developed by Josh Hug,
  * Maia Ginsburg, and Kevin Wayne.
  * {@link https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/seam/specification.php}
  */
@@ -17,14 +17,14 @@ class SeamRetargeter implements Retargeter {
     public imageData: ImageData;
 
     /**
-     * energies[row][col] gives the value of the dual-gradient energy function
-     * for the pixel at (row, col).
+     * `energies[row][col]` gives the value of the dual-gradient energy function
+     * for the pixel at `(row, col)`.
      */
     private energies: number[][];
 
     /**
-     * Creates a new SeamCarver object. A deep copy of the given ImageData is
-     * created to prevent outside mutations.
+     * Creates a new SeamRetargeter object. A deep copy of the given ImageData
+     * is created to prevent outside mutations.
      */
     constructor(imageData: ImageData) {
         const { width, height, data } = imageData;
@@ -57,7 +57,7 @@ class SeamRetargeter implements Retargeter {
         throw new Error("Operation not supported.");
     }
 
-    /** Throws an error. Seam insertion cannot be completed in real-time. */
+    /** Throws an error. Seam insertion cannot be completed in real time. */
     public growVertical(n: number = 1): void {
         throw new Error("Operation not supported.");
     }
