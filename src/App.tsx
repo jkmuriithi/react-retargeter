@@ -7,7 +7,7 @@ import {
     Form,
     ToggleButton,
 } from "react-bootstrap";
-import exampleImage from "./assets/ExampleImageMountains.jpg";
+import exampleImage from "./assets/ExampleImageMountainsCompressed.jpg";
 import TopNav from "./components/TopNav";
 import toImageData, {
     ImageSize,

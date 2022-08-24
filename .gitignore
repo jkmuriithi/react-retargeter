@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# PWA Assets
+# Vite Assets
+build/
 favicon_io/
 dev-dist/
