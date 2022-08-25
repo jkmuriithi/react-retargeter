@@ -103,15 +103,7 @@ function InfoModal(props: ModalProps) {
                     .
                 </p>
                 <p className="text-muted mb-0 pb-0">
-                    Inspired by a{" "}
-                    <a
-                        className="text-muted"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href="https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/seam/specification.php"
-                    >
-                        Princeton COS226 assignment
-                    </a>{" "}
+                    Inspired by a Princeton University programming assignment
                     developed by Josh Hug, Maia Ginsburg, and Kevin Wayne.
                 </p>
             </Modal.Body>

@@ -9,9 +9,8 @@ import Retargeter from "./Retargeter";
  * @author Jude Muriithi <https://github.com/jkmuriithi>
  *
  * @citation
- * Inspired by a Princeton COS226 assignment developed by Josh Hug,
- * Maia Ginsburg, and Kevin Wayne.
- * {@link https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/seam/specification.php}
+ * Inspired by a Princeton University programming assignment developed by Josh
+ * Hug, Maia Ginsburg, and Kevin Wayne.
  */
 class SeamRetargeter implements Retargeter {
     public imageData: ImageData;
