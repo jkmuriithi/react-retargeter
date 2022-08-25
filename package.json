@@ -8,10 +8,8 @@
     },
     "scripts": {
         "dev": "vite",
-        "start": "vite",
         "build": "tsc && vite build",
         "preview": "vite preview",
-        "serve": "vite preview",
         "fmt": "prettier --write ."
     },
     "dependencies": {
@@ -38,9 +36,6 @@
         "extends": [
             "react-app"
         ]
-    },
-    "glitch": {
-        "projectType": "generated_static"
     },
     "repository": "github:jkmuriithi/react-retargeter"
 }

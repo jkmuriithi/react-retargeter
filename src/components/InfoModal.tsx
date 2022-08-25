@@ -22,11 +22,10 @@ function InfoModal(props: ModalProps) {
             </Modal.Header>
             <Modal.Body>
                 <Alert variant="info">
-                    <Bold>Image retargeting</Bold> or{" "}
-                    <Bold>content-aware image resizing</Bold> is a subfield of
-                    image processing which focuses on changing the size of
-                    images while keeping the most important features of those
-                    images in frame. This app implements the{" "}
+                    In image processing, <Bold>image retargeting</Bold> or{" "}
+                    <Bold>content-aware image resizing</Bold> is the problem of
+                    changing an image's size while keeping the most important
+                    features of that image in frame. This app implements the{" "}
                     <Bold>seam carving algorithm</Bold> for image retargeting
                     and allows you to use it on images in real time. (See{" "}
                     <a
@@ -90,7 +89,7 @@ function InfoModal(props: ModalProps) {
                     <Bold>horizontal and vertical seams</Bold> which the
                     algorithm will remove.
                 </p>
-                <p className="text-muted mb-0 pb-0">
+                <p className="text-muted">
                     Default image by{" "}
                     <a
                         className="text-muted"
@@ -102,9 +101,9 @@ function InfoModal(props: ModalProps) {
                     </a>
                     .
                 </p>
-                <p className="text-muted mb-0 pb-0">
-                    Inspired by a Princeton University programming assignment
-                    developed by Josh Hug, Maia Ginsburg, and Kevin Wayne.
+                <p className="text-muted m-0 p-0">
+                    Inspired by a Princeton programming assignment developed by
+                    Josh Hug, Maia Ginsburg, and Kevin Wayne.
                 </p>
             </Modal.Body>
             <Modal.Footer>
