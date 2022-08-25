@@ -7,10 +7,10 @@ A React PWA which demonstrates content-aware image resizing in real time.
 -   Platform
     -   [NodeJS 16](https://nodejs.org/en/)
 -   Languages
-    -   [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html)
+    -   [TypeScript](https://www.typescriptlang.org/)
 -   Frontend
     -   Client-Side Framework: [React](https://beta.reactjs.org/)
-    -   Development Framework: [Vite](https://vitejs.dev/guide/)
+    -   Development Framework: [Vite](https://vitejs.dev/) w/ [Vite PWA](https://vite-plugin-pwa.netlify.app/)
     -   Design System: [React Bootstrap](https://react-bootstrap.github.io/) w/ [Bootswatch Flatly](https://bootswatch.com/flatly/)
     -   Icons: [React Icons - Bootstrap](https://react-icons.github.io/react-icons)
 -   Web APIs
@@ -35,3 +35,8 @@ pnpm dev
 ```
 
 Check out the project's `package.json` for a full list of available NPM scripts.
+
+**Note:** The app's service worker may throw some configuration errors when you
+first launch the development server. These should disappear if you kill the
+server and restart it.
+
