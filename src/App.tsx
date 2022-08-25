@@ -47,7 +47,7 @@ function App() {
      */
     const getDownloadData = useCallback(
         () => ({
-            name: `Image-Carver-${new Date()
+            name: `Image-Resizer-${new Date()
                 .toISOString()
                 .replaceAll(/[:\-.]/g, "")}.png`,
             url: canvasRef.current?.toDataURL(),

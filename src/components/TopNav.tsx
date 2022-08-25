@@ -28,7 +28,7 @@ function TopNav() {
                     <span className="text-muted ms-auto">
                         A project by{" "}
                         <a
-                            href="https://github.com/jkmuriithi/react-retargeter"
+                            href="https://github.com/jkmuriithi"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-muted"
