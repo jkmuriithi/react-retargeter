@@ -20,6 +20,8 @@ async function toImageData(
 
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
 
     if (typeof localFile === "string") {
         const image = document.createElement("img");
@@ -42,8 +44,6 @@ async function toImageData(
         canvas.width = width;
         canvas.height = height;
 
-        context.imageSmoothingEnabled = true;
-        context.imageSmoothingQuality = "high";
         context.drawImage(image, 0, 0, width, height);
 
         image.remove();
@@ -55,8 +55,6 @@ async function toImageData(
         canvas.width = width;
         canvas.height = height;
 
-        context.imageSmoothingEnabled = true;
-        context.imageSmoothingQuality = "high";
         context.drawImage(bitmap, 0, 0, width, height);
     }
 

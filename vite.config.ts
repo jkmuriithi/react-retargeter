@@ -17,8 +17,8 @@ export default defineConfig({
                 enabled: true,
             },
             manifest: {
-                name: "Interactive Image Retargeter",
-                short_name: "Retargeter",
+                name: "Interactive Image Resizer",
+                short_name: "Resizer",
                 description: "Content-aware image resizing in real time.",
                 display: "standalone",
                 theme_color: "#2c3e50",
