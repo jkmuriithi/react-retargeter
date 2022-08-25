@@ -1,0 +1,8 @@
+[build.environment]
+    NODE_VERSION = "16"
+    NPM_FLAGS = "--version" # prevent Netlify npm install
+[build]
+    publish = "dist"
+    command = """npx pnpm install --store-dir=node_modules/.pnpm-store \
+        --frozen-lockfile && npm run build"""
+
