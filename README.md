@@ -24,7 +24,7 @@ beginning local development.
 
 ```bash
 # Clone the repo
-git clone https://github.com/muriithipton/react-retargeter.git
+git clone https://github.com/jkmuriithi/react-retargeter.git
 cd react-retargeter
 
 # Install dependencies
@@ -39,4 +39,3 @@ Check out the project's `package.json` for a full list of available NPM scripts.
 **Note:** The app's service worker may throw some configuration errors when you
 first launch the development server. These should disappear if you kill the
 server and restart it.
-

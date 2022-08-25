@@ -6,10 +6,10 @@ import Retargeter from "./Retargeter";
  * completed in real time, this class does not support the `growHorizontal` and
  * `growVertical` operations.
  *
- * @author Jude Muriithi <https://github.com/muriithipton>
+ * @author Jude Muriithi <https://github.com/jkmuriithi>
  *
  * @citation
- * Adapted from a Princeton COS226 assignment developed by Josh Hug,
+ * Inspired by a Princeton COS226 assignment developed by Josh Hug,
  * Maia Ginsburg, and Kevin Wayne.
  * {@link https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/seam/specification.php}
  */

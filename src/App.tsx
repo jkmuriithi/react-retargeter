@@ -162,7 +162,9 @@ function App() {
                         className="my-2 ms-2 pe-none"
                         variant="outline-dark"
                     >
-                        {`${canvasSize.width} \u00D7 ${canvasSize.height}`}
+                        {`${canvasSize.width} \u00D7 ${canvasSize.height}${
+                            isExpanded ? "*" : ""
+                        }`}
                     </Button>
                     <Button
                         className="my-2 me-2 ms-none"

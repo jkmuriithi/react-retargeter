@@ -11,7 +11,7 @@ function TopNav() {
         <Navbar fixed="top" bg="primary" variant="dark" expand="md">
             <Container fluid className="mx-2">
                 <Navbar.Brand className="fw-bold">
-                    Interactive Image Retargeter{" "}
+                    Interactive Image Resizer{" "}
                     <BsQuestionCircleFill
                         onClick={() => {
                             setShowInfoModal(true);
@@ -28,7 +28,9 @@ function TopNav() {
                     <span className="text-muted ms-auto">
                         A project by{" "}
                         <a
-                            href="https://github.com/muriithipton"
+                            href="https://github.com/jkmuriithi/react-retargeter"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-muted"
                         >
                             Jude Muriithi <BsGithub className="mb-1 ms-1" />
@@ -38,6 +40,7 @@ function TopNav() {
             </Container>
             <InfoModal
                 show={showInfoModal}
+                size="lg"
                 centered
                 onHide={() => {
                     setShowInfoModal(false);

@@ -41,5 +41,6 @@
     },
     "glitch": {
         "projectType": "generated_static"
-    }
+    },
+    "repository": "github:jkmuriithi/react-retargeter"
 }
