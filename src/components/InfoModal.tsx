@@ -49,6 +49,10 @@ function InfoModal(props: ModalProps) {
                     <Bold>true size</Bold> of an image will always be less than
                     or equal to its starting size.
                 </p>
+                <Alert variant="danger">
+                    For now, resizing <Bold>does not work</Bold> on incompatible
+                    mobile devices. A solution is in the works, so stay tuned.
+                </Alert>
                 <p>
                     <Bold>Tip:</Bold> Resize the image <Bold>slowly</Bold> for
                     the best results.
