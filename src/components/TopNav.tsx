@@ -16,7 +16,7 @@ function TopNav() {
                         onClick={() => {
                             setShowInfoModal(true);
                         }}
-                        size={15}
+                        size={18}
                         className="mb-1 ms-1 link-dark"
                     />
                 </Navbar.Brand>
